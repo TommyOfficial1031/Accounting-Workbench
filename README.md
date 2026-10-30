@@ -1,1 +1,2 @@
-A data auto-process tool for wangguan.
+A data auto-process tool for Logistics Network Manager.
+Gradually improving...
