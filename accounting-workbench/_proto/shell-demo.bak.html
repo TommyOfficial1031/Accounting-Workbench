@@ -1,0 +1,4605 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>算账工作台 · 可交互壳层原型</title>
+<style>
+  /* ═══════ 设计变量 ═══════ */
+  :root {
+    --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+      "Segoe UI", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+    --color-bg: #fff;
+    --color-bg-secondary: #f5f5f7;
+    --color-bg-sunken: #fafafc;
+    --color-text: #1d1d1f;
+    --color-text-secondary: #6e6e73;
+    --color-text-tertiary: #8e8e93;
+    --color-border: #d2d2d7;
+    --color-border-soft: #e6e6eb;
+    --color-primary: #0071e3;
+    --color-primary-hover: #0077ed;
+    --color-on-primary: #fff;
+    --color-success: #34c759;
+    --color-warning: #ff9500;
+    --color-danger: #ff3b30;
+    --color-hover: rgba(0, 0, 0, 0.045);
+    --color-active: rgba(0, 113, 227, 0.1);
+    --color-warn-bg: #fff8ec;
+    --color-warn-text: #8a5a00;
+    --sidebar-width: 232px;
+    --sidebar-width-collapsed: 64px;
+    --item-h: 40px;
+    --card-radius: 14px;
+    --handle: 22px;
+    --dur-fast: 120ms;
+    --dur-base: 200ms;
+    --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+    --text-scale: 1;
+  }
+  html[data-theme="dark"] {
+    --color-bg: #1c1c1e;
+    --color-bg-secondary: #101012;
+    --color-bg-sunken: #232325;
+    --color-text: #f5f5f7;
+    --color-text-secondary: #98989d;
+    --color-text-tertiary: #7c7c81;
+    --color-border: #38383a;
+    --color-border-soft: #2c2c2e;
+    --color-primary: #0a84ff;
+    --color-primary-hover: #409cff;
+    --color-hover: rgba(255, 255, 255, 0.06);
+    --color-active: rgba(10, 132, 255, 0.16);
+    --color-warn-bg: #3a2f14;
+    --color-warn-text: #ffd68a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font-family);
+    font-size: calc(14px * var(--text-scale));
+    line-height: 1.5;
+    color: var(--color-text);
+    background: var(--color-bg-secondary);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  button, input, select { font: inherit; color: inherit; }
+  button { cursor: pointer; border: none; background: none; }
+  button:disabled { cursor: not-allowed; }
+  :focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+  ul { list-style: none; }
+  svg { display: block; }
+  kbd {
+    display: inline-block; min-width: 20px; padding: 1px 5px;
+    border: 1px solid var(--color-border-soft); border-bottom-width: 2px; border-radius: 5px;
+    background: var(--color-bg); color: var(--color-text-secondary);
+    font-family: inherit; font-size: calc(11px * var(--text-scale)); line-height: 16px; text-align: center;
+  }
+  .muted { color: var(--color-text-secondary); }
+  .tiny { font-size: calc(12px * var(--text-scale)); color: var(--color-text-tertiary); }
+
+  /* ═══════ 通用控件 ═══════ */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    height: 32px; padding: 0 12px; border-radius: 8px;
+    font-size: calc(13px * var(--text-scale));
+    transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease),
+      transform var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease);
+  }
+  .btn:active:not(:disabled) { transform: translateY(1px); }
+  .btn:disabled { opacity: 0.45; }
+  .btn-primary { background: var(--color-primary); color: var(--color-on-primary); font-weight: 600; }
+  .btn-primary:hover:not(:disabled) { background: var(--color-primary-hover); }
+  .btn-secondary { border: 1px solid var(--color-border); background: var(--color-bg); }
+  .btn-secondary:hover:not(:disabled) { background: var(--color-bg-secondary); }
+  .btn-ghost { color: var(--color-text); }
+  .btn-ghost:hover:not(:disabled) { background: var(--color-hover); }
+  .btn-lg { height: 38px; padding: 0 22px; font-size: calc(14px * var(--text-scale)); border-radius: 9px; }
+  .btn-icon { width: 28px; padding: 0; }
+
+  .input {
+    height: 34px; padding: 0 10px; width: 100%;
+    border: 1px solid var(--color-border); border-radius: 8px;
+    background: var(--color-bg);
+    font-size: calc(13px * var(--text-scale));
+    transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+  }
+  .input:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-active); }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field > label { font-size: calc(12px * var(--text-scale)); color: var(--color-text-secondary); }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .grow { flex: 1; min-width: 0; }
+
+  .segmented {
+    display: inline-flex; padding: 2px; gap: 2px; border-radius: 8px;
+    background: var(--color-bg-secondary); border: 1px solid var(--color-border-soft);
+  }
+  .segmented button {
+    height: 26px; padding: 0 12px; border-radius: 6px;
+    font-size: calc(12px * var(--text-scale)); color: var(--color-text-secondary);
+    transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  }
+  .segmented button.on { background: var(--color-bg); color: var(--color-text); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px;
+    border-radius: 6px; background: var(--color-bg-secondary);
+    font-size: calc(11px * var(--text-scale)); color: var(--color-text-secondary);
+  }
+  .chip-ok { color: var(--color-success); }
+  .chip-warn { color: var(--color-warning); }
+
+  .table { width: 100%; border-collapse: collapse; font-size: calc(12px * var(--text-scale)); }
+  .table th {
+    position: sticky; top: 0; z-index: 1;
+    padding: 7px 10px; text-align: left; font-weight: 500;
+    color: var(--color-text-secondary); background: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-border-soft);
+    border-right: 1px solid var(--color-border-soft); white-space: nowrap;
+  }
+  .table td {
+    padding: 0 10px; height: 28px; white-space: nowrap;
+    border-bottom: 1px solid var(--color-border-soft);
+    border-right: 1px solid var(--color-border-soft);
+  }
+  .table tbody tr { transition: background var(--dur-fast) var(--ease); }
+  .table td.edited { background: rgba(255, 149, 0, 0.12); box-shadow: inset 0 -2px 0 var(--color-warning); }
+  .table tbody tr:hover { background: var(--color-hover); }
+  .table tbody tr.selected { background: var(--color-active); }
+  .table .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* ═══════ 外壳与侧边栏 ═══════ */
+  .shell { position: relative; display: flex; height: 100%; overflow: hidden; --side-w: var(--sidebar-width); }
+  .shell.collapsed { --side-w: var(--sidebar-width-collapsed); }
+
+  .sidebar {
+    position: relative; z-index: 30; flex: 0 0 var(--side-w); width: var(--side-w);
+    display: flex; flex-direction: column; padding: 14px 12px 12px;
+    transition: width var(--dur-base) var(--ease), flex-basis var(--dur-base) var(--ease);
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px; height: var(--item-h);
+    padding: 0 10px; margin-bottom: 10px; overflow: hidden;
+    transition: padding var(--dur-base) var(--ease), gap var(--dur-base) var(--ease);
+  }
+  .brand-mark {
+    flex: 0 0 22px; width: 22px; height: 22px; border-radius: 7px;
+    background: linear-gradient(135deg, var(--color-primary), #4aa8f0);
+    color: #fff; display: grid; place-items: center;
+    font-size: calc(12px * var(--text-scale)); font-weight: 700; user-select: none;
+  }
+  .brand-text { display: flex; flex-direction: column; gap: 1px; white-space: nowrap; overflow: hidden;
+    transition: opacity 140ms var(--ease); }
+  .brand-title { font-size: calc(13px * var(--text-scale)); font-weight: 600; }
+  .brand-sub { font-size: calc(10px * var(--text-scale)); color: var(--color-text-tertiary); letter-spacing: .02em; }
+
+  /* 当前项目卡 */
+  .current {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    padding: 8px 10px; margin-bottom: 10px; border-radius: 9px;
+    border: 1px solid var(--color-border-soft); background: var(--color-bg);
+    text-align: left; overflow: hidden;
+    transition: background var(--dur-fast) var(--ease), padding var(--dur-base) var(--ease),
+      gap var(--dur-base) var(--ease), border-color var(--dur-fast) var(--ease);
+  }
+  .current:hover { border-color: var(--color-primary); }
+  .current-icon {
+    flex: 0 0 22px; width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center;
+    background: var(--color-active); color: var(--color-primary);
+  }
+  .current-text { display: flex; flex-direction: column; min-width: 0;
+    transition: opacity 140ms var(--ease); }
+  .current-name { font-size: calc(12px * var(--text-scale)); font-weight: 600; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; }
+  .current-meta { font-size: calc(11px * var(--text-scale)); color: var(--color-text-tertiary); white-space: nowrap; }
+
+  .nav { display: flex; flex-direction: column; gap: 2px; }
+  .item-wrap { position: relative; }
+  .item {
+    display: flex; align-items: center; gap: 12px; width: 100%;
+    height: var(--item-h); padding: 0 10px; border-radius: 9px;
+    color: var(--color-text); font-size: calc(14px * var(--text-scale)); text-align: left;
+    transition: background var(--dur-fast) var(--ease), gap var(--dur-base) var(--ease),
+      padding var(--dur-base) var(--ease);
+  }
+  .item:hover { background: var(--color-hover); }
+  .item.active, .item.active:hover { background: var(--color-active); color: var(--color-primary); font-weight: 600; }
+  .item-icon { flex: 0 0 20px; display: grid; place-items: center; }
+  .label {
+    max-width: 200px; overflow: hidden; white-space: nowrap; opacity: 1;
+    transition: opacity 140ms var(--ease), max-width var(--dur-base) var(--ease),
+      transform var(--dur-base) var(--ease);
+  }
+  .footer-nav { margin-top: auto; padding-top: 10px; border-top: 1px solid var(--color-border-soft); }
+
+  .collapsed .brand { padding: 0; gap: 0; justify-content: center; }
+  .collapsed .brand-text { opacity: 0; width: 0; }
+  .collapsed .current { padding: 8px 0; gap: 0; justify-content: center; }
+  .collapsed .current-text { opacity: 0; width: 0; }
+  .collapsed .item { gap: 0; padding: 0; justify-content: center; }
+  .collapsed .label { max-width: 0; opacity: 0; transform: translateX(-4px); }
+  .collapsed .item-wrap::after, .collapsed .current::after {
+    content: attr(data-tip); position: absolute; left: calc(100% + 12px); top: 50%;
+    transform: translateY(-50%) translateX(-4px); padding: 4px 8px; border-radius: 6px;
+    background: rgba(29,29,31,.92); color: #fff; font-size: calc(12px * var(--text-scale));
+    white-space: nowrap; opacity: 0; pointer-events: none; z-index: 90;
+    transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+  }
+  .collapsed .item-wrap:hover::after, .collapsed .current:hover::after {
+    opacity: 1; transform: translateY(-50%) translateX(0);
+  }
+
+  /* 侧边栏浮层菜单 */
+  .flyout {
+    position: absolute; left: calc(100% + 10px); top: -4px; z-index: 80; min-width: 190px;
+    padding: 6px; border: 1px solid var(--color-border-soft); border-radius: 10px;
+    background: var(--color-bg); box-shadow: 0 12px 32px rgba(0,0,0,.16);
+    animation: popIn 140ms var(--ease);
+  }
+  .flyout.up { top: auto; bottom: -4px; }
+  @keyframes popIn { from { opacity: 0; transform: translateX(-4px); } to { opacity: 1; transform: none; } }
+  .flyout button {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    width: 100%; padding: 8px 10px; border-radius: 6px; text-align: left;
+    font-size: calc(13px * var(--text-scale)); white-space: nowrap;
+  }
+  .flyout button:hover:not(:disabled) { background: var(--color-hover); }
+  .flyout button:disabled { color: var(--color-text-tertiary); }
+  .flyout .sep { height: 1px; margin: 5px 4px; background: var(--color-border-soft); }
+  .flyout .hint { padding: 2px 10px 6px; color: var(--color-text-tertiary); font-size: calc(11px * var(--text-scale)); }
+
+  .main { flex: 1; min-width: 0; display: flex; padding: 12px 12px 12px 0; overflow: hidden; }
+  .card {
+    flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden;
+    border-radius: var(--card-radius); border: 1px solid var(--color-border-soft);
+    background: var(--color-bg); box-shadow: 0 1px 2px rgba(0,0,0,.05);
+  }
+
+  .edge {
+    position: absolute; top: 0; bottom: 0; left: calc(var(--side-w) - 10px); width: 20px; z-index: 40;
+    display: flex; align-items: center; justify-content: center;
+    transition: left var(--dur-base) var(--ease);
+  }
+  .handle {
+    width: var(--handle); height: var(--handle); display: grid; place-items: center; padding: 0;
+    border: 1px solid var(--color-border-soft); border-radius: 999px;
+    background: var(--color-bg); color: var(--color-text-secondary);
+    box-shadow: 0 1px 4px rgba(0,0,0,.14); opacity: 0; transform: scale(.9);
+    transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  }
+  .edge:hover .handle, .handle:focus-visible { opacity: 1; transform: scale(1); }
+  .handle:hover { color: var(--color-primary); border-color: var(--color-primary); }
+  .handle svg { transition: transform var(--dur-base) var(--ease); }
+  .collapsed .handle svg { transform: rotate(180deg); }
+
+  /* ═══════ 页面通用 ═══════ */
+  .view { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .view.enter { animation: viewIn 180ms var(--ease); }
+  @keyframes viewIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  .page-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; border-bottom: 1px solid var(--color-border-soft);
+  }
+  .page-title { font-size: calc(15px * var(--text-scale)); font-weight: 600; }
+  .page-sub { font-size: calc(12px * var(--text-scale)); color: var(--color-text-tertiary); }
+  .page-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  .scroll { flex: 1; min-height: 0; overflow: auto; }
+
+  /* ═══════ 首页 ═══════ */
+  .welcome { flex: 1; display: grid; place-items: center; padding: 40px 24px; overflow: auto; }
+  .welcome-inner { display: flex; flex-direction: column; gap: 26px; width: 100%; max-width: 520px; }
+  .welcome h1 { font-size: calc(26px * var(--text-scale)); font-weight: 600; letter-spacing: -.015em; }
+  .tagline { margin-top: 6px; color: var(--color-text-secondary); font-size: calc(13px * var(--text-scale)); }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .hints { display: flex; flex-direction: column; gap: 12px; padding-top: 20px;
+    border-top: 1px solid var(--color-border-soft); }
+  .hintrow { display: flex; align-items: center; gap: 10px; color: var(--color-text-secondary);
+    font-size: calc(13px * var(--text-scale)); }
+  .keys { display: inline-flex; gap: 3px; flex: 0 0 auto; }
+  .notes { display: flex; flex-direction: column; gap: 6px; }
+  .note { display: flex; gap: 7px; color: var(--color-text-tertiary); font-size: calc(12px * var(--text-scale)); }
+  .note::before { content: ""; flex: 0 0 3px; height: 3px; margin-top: 8px; border-radius: 2px;
+    background: var(--color-border); }
+
+  /* ═══════ 工作区 ═══════ */
+  .ws-head { display: flex; align-items: center; gap: 16px; padding: 12px 16px;
+    border-bottom: 1px solid var(--color-border-soft); }
+  .ws-identity { min-width: 0; }
+  .ws-title { font-size: calc(15px * var(--text-scale)); font-weight: 600; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; }
+  .ws-meta { font-size: calc(12px * var(--text-scale)); color: var(--color-text-tertiary); }
+  .ws-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  .save-state { display: inline-flex; align-items: center; gap: 6px; margin-right: 4px;
+    font-size: calc(12px * var(--text-scale)); color: var(--color-text-tertiary); }
+  .dot { width: 6px; height: 6px; border-radius: 999px; background: var(--color-success);
+    transition: background var(--dur-base) var(--ease); }
+  .dot.dirty { background: var(--color-warning); }
+
+  .toolbar { display: flex; align-items: center; gap: 4px; padding: 6px 12px;
+    border-bottom: 1px solid var(--color-border-soft); background: var(--color-bg-sunken); }
+  .toolbar .group { display: flex; align-items: center; gap: 2px; }
+  .toolbar .divider { width: 1px; height: 18px; margin: 0 6px; background: var(--color-border-soft); }
+  .toolbar .spacer { flex: 1; }
+  .tool-btn { height: 28px; min-width: 28px; padding: 0 8px; border-radius: 7px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    color: var(--color-text-secondary); font-size: calc(12px * var(--text-scale));
+    transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+  .tool-btn:hover:not(:disabled) { background: var(--color-hover); color: var(--color-text); }
+  .tool-btn:disabled { opacity: .4; }
+  .find { display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 8px;
+    border: 1px solid var(--color-border-soft); border-radius: 7px; background: var(--color-bg); }
+  .find input { width: 130px; border: none; background: none; outline: none;
+    font-size: calc(12px * var(--text-scale)); }
+
+  .grid-host { flex: 1; min-height: 0; overflow: auto; }
+  .grid-host table { min-width: 100%; }
+
+  .statusbar { display: flex; align-items: center; gap: 14px; height: 28px; padding: 0 14px;
+    border-top: 1px solid var(--color-border-soft); background: var(--color-bg-sunken);
+    font-size: calc(11px * var(--text-scale)); color: var(--color-text-tertiary);
+    font-variant-numeric: tabular-nums; }
+  .statusbar .right { margin-left: auto; display: flex; gap: 14px; }
+
+  .notice { display: flex; gap: 14px; flex-wrap: wrap; padding: 7px 16px;
+    background: var(--color-warn-bg); color: var(--color-warn-text);
+    font-size: calc(12px * var(--text-scale)); border-bottom: 1px solid var(--color-border-soft); }
+
+  /* 右键菜单 */
+  .ctx {
+    position: fixed; z-index: 120; min-width: 168px; padding: 6px;
+    border: 1px solid var(--color-border-soft); border-radius: 10px; background: var(--color-bg);
+    box-shadow: 0 12px 32px rgba(0,0,0,.18); animation: popIn 120ms var(--ease);
+  }
+  .ctx button { display: flex; justify-content: space-between; gap: 16px; width: 100%;
+    padding: 7px 10px; border-radius: 6px; text-align: left;
+    font-size: calc(13px * var(--text-scale)); }
+  .ctx button:hover { background: var(--color-hover); }
+  .ctx .sep { height: 1px; margin: 5px 4px; background: var(--color-border-soft); }
+  .ctx kbd { border: none; background: none; color: var(--color-text-tertiary); }
+
+  /* ═══════ 分析页 ═══════ */
+  .split { flex: 1; min-height: 0; display: flex; }
+  .split-left { flex: 0 0 58%; min-width: 0; display: flex; flex-direction: column;
+    border-right: 1px solid var(--color-border-soft); }
+  .split-right { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--color-bg-sunken); }
+  .config { flex: 1; min-height: 0; overflow: auto; padding: 14px 16px; display: flex;
+    flex-direction: column; gap: 14px; }
+  .section { border: 1px solid var(--color-border-soft); border-radius: 10px;
+    background: var(--color-bg); overflow: hidden; }
+  .section-head { display: flex; align-items: center; gap: 8px; padding: 9px 12px;
+    background: var(--color-bg-sunken); border-bottom: 1px solid var(--color-border-soft); }
+  .section-title { font-size: calc(13px * var(--text-scale)); font-weight: 600; }
+  .section-body { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .config-foot { display: flex; align-items: center; gap: 12px; padding: 10px 16px;
+    border-top: 1px solid var(--color-border-soft); background: var(--color-bg); }
+  .metric-row { display: grid; grid-template-columns: 1.2fr 1fr 1.2fr 28px; gap: 8px; align-items: center; }
+  .metric-row .input { height: 30px; }
+  .ratio-row { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 6px 8px; border: 1px solid var(--color-border-soft); border-radius: 8px; }
+  .ratio-row.on { border-color: var(--color-primary); background: var(--color-active); }
+
+  .result-head { display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+    border-bottom: 1px solid var(--color-border-soft); }
+  .tabs { display: inline-flex; gap: 2px; }
+  .tabs button { height: 26px; padding: 0 12px; border-radius: 7px;
+    font-size: calc(12px * var(--text-scale)); color: var(--color-text-secondary); }
+  .tabs button.on { background: var(--color-bg); color: var(--color-text); font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .result-body { flex: 1; min-height: 0; overflow: auto; padding: 12px; }
+  .result-empty { flex: 1; display: grid; place-items: center; padding: 24px; }
+  .acc { border: 1px solid var(--color-border-soft); border-radius: 10px; background: var(--color-bg);
+    margin-top: 10px; overflow: hidden; }
+  .acc-head { display: flex; align-items: center; justify-content: space-between; width: 100%;
+    padding: 9px 12px; font-size: calc(12px * var(--text-scale)); font-weight: 600; }
+  .acc-head:hover { background: var(--color-hover); }
+  .acc-body { padding: 12px; border-top: 1px solid var(--color-border-soft);
+    display: flex; flex-direction: column; gap: 10px; }
+  .chart-controls { padding: 10px 12px; border-bottom: 1px solid var(--color-border-soft);
+    background: var(--color-bg); }
+  .chart-title { width: 100%; text-align: center; font-weight: 600;
+    font-size: calc(13px * var(--text-scale)); padding: 2px 0 6px; border-radius: 6px; }
+  .chart-title.placeholder { color: var(--color-text-tertiary); font-weight: 400; }
+  .chart-title:hover { background: var(--color-hover); }
+  .chart-controls .segmented button { height: 24px; padding: 0 10px; }
+  .chart-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .chart-row:first-child { margin-top: 0; }
+  .chart-label { flex: 0 0 52px; font-size: calc(11px * var(--text-scale)); color: var(--color-text-tertiary); }
+  .section-body { max-height: 34vh; overflow: auto; }
+  .zone-metric .section-body { max-height: 30vh; }
+  .chart-box { flex: 1; min-height: 260px; display: grid; place-items: center; padding: 8px; }
+  .y-chip { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px;
+    border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-bg);
+    font-size: calc(11px * var(--text-scale)); color: var(--color-text-secondary); }
+  .y-chip.on { border-color: var(--color-primary); background: var(--color-active); color: var(--color-primary); font-weight: 600; }
+
+  /* ═══════ 项目 / 历史 ═══════ */
+  .list-toolbar { display: flex; align-items: center; gap: 8px; padding: 10px 16px;
+    border-bottom: 1px solid var(--color-border-soft); }
+  .list-body { flex: 1; min-height: 0; overflow: auto; }
+  .list-foot { display: flex; align-items: center; padding: 8px 16px;
+    border-top: 1px solid var(--color-border-soft); font-size: calc(12px * var(--text-scale));
+    color: var(--color-text-tertiary); }
+  .pager { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+  .pager button { min-width: 26px; height: 26px; border-radius: 7px;
+    font-size: calc(12px * var(--text-scale)); color: var(--color-text-secondary); }
+  .pager button:hover:not(:disabled) { background: var(--color-hover); }
+  .pager button.on { background: var(--color-primary); color: #fff; font-weight: 600; }
+  .history-wrap { flex: 1; min-height: 0; display: flex; }
+  .filters { flex: 0 0 232px; padding: 14px; border-right: 1px solid var(--color-border-soft);
+    display: flex; flex-direction: column; gap: 12px; overflow: auto; }
+  .history-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .row-btn { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+    padding: 10px 16px; border-bottom: 1px solid var(--color-border-soft);
+    transition: background var(--dur-fast) var(--ease); }
+  .row-btn:hover { background: var(--color-hover); }
+  .row-btn .name { font-size: calc(13px * var(--text-scale)); font-weight: 500; }
+  .row-btn .meta { font-size: calc(11px * var(--text-scale)); color: var(--color-text-tertiary); }
+
+  /* ═══════ 合并向导 ═══════ */
+  .steps { display: flex; align-items: center; gap: 8px; padding: 12px 16px;
+    border-bottom: 1px solid var(--color-border-soft); }
+  .step { display: flex; align-items: center; gap: 7px; font-size: calc(12px * var(--text-scale));
+    color: var(--color-text-tertiary); }
+  .step-no { width: 20px; height: 20px; border-radius: 999px; display: grid; place-items: center;
+    background: var(--color-bg-secondary); font-size: calc(11px * var(--text-scale)); font-weight: 600; }
+  .step.on { color: var(--color-text); }
+  .step.on .step-no { background: var(--color-primary); color: #fff; }
+  .step.done .step-no { background: var(--color-active); color: var(--color-primary); }
+  .step-sep { width: 24px; height: 1px; background: var(--color-border-soft); }
+  .wizard-body { flex: 1; min-height: 0; overflow: auto; padding: 16px; display: flex;
+    flex-direction: column; gap: 14px; }
+  .wizard-foot { display: flex; align-items: center; gap: 8px; padding: 10px 16px;
+    border-top: 1px solid var(--color-border-soft); }
+  .card-soft { border: 1px solid var(--color-border-soft); border-radius: 10px;
+    padding: 12px; background: var(--color-bg-sunken); display: flex; flex-direction: column; gap: 8px; }
+  .kv { display: flex; gap: 8px; font-size: calc(12px * var(--text-scale)); }
+  .kv b { min-width: 84px; color: var(--color-text-secondary); font-weight: 500; }
+
+  /* ═══════ 回归 ═══════ */
+  .reg-left { flex: 0 0 340px; padding: 14px; border-right: 1px solid var(--color-border-soft);
+    display: flex; flex-direction: column; gap: 12px; overflow: auto; }
+  .reg-right { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 14px; gap: 12px; overflow: auto; }
+  .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .summary-card { padding: 10px 12px; border: 1px solid var(--color-border-soft); border-radius: 10px;
+    background: var(--color-bg-sunken); }
+  .summary-label { font-size: calc(11px * var(--text-scale)); color: var(--color-text-tertiary); }
+  .summary-value { font-size: calc(18px * var(--text-scale)); font-weight: 600;
+    font-variant-numeric: tabular-nums; }
+  .formula { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: calc(11px * var(--text-scale)); color: var(--color-text-secondary); line-height: 1.7; }
+  .summary-note { margin-top: 3px; font-size: calc(10px * var(--text-scale));
+    line-height: 1.5; color: var(--color-text-tertiary); }
+  .reg-charts { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 12px; }
+  .reg-chart-card { padding: 10px 12px; }
+  .reg-chart-title { font-size: calc(11px * var(--text-scale)); font-weight: 500;
+    color: var(--color-text-secondary); }
+  .reg-chart-card .chart-box { flex: 0 0 auto; min-height: 240px; height: 240px; }
+  .reg-concl { gap: 6px; }
+  .reg-concl-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .reg-concl-body { max-height: 200px; overflow: auto; border: 1px solid var(--color-border-soft);
+    border-radius: 8px; background: var(--color-bg); }
+  .reg-concl-body .table th, .reg-concl-body .table td { border-right: none; }
+  .reg-concl-body .table th { padding: 6px 12px; }
+  .reg-concl-body .table td { padding: 0 12px; }
+
+  /* ═══════ 设置 ═══════ */
+  .settings { flex: 1; min-height: 0; overflow: auto; padding: 20px; }
+  .settings-inner { max-width: 640px; display: flex; flex-direction: column; gap: 18px; }
+  .setting-group { border: 1px solid var(--color-border-soft); border-radius: 12px; overflow: hidden; }
+  .setting-group > h3 { padding: 10px 14px; background: var(--color-bg-sunken);
+    border-bottom: 1px solid var(--color-border-soft); font-size: calc(13px * var(--text-scale)); }
+  .setting-row { display: flex; align-items: center; gap: 16px; padding: 12px 14px;
+    border-bottom: 1px solid var(--color-border-soft); }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-row .name { font-size: calc(13px * var(--text-scale)); }
+  .setting-row .desc { font-size: calc(11px * var(--text-scale)); color: var(--color-text-tertiary); }
+  .setting-row .control { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .preview-text { padding: 6px 10px; border-radius: 8px; background: var(--color-bg-secondary);
+    font-size: calc(13px * var(--text-scale)); white-space: nowrap; }
+
+  /* ═══════ 帮助 ═══════ */
+  .help-wrap { flex: 1; min-height: 0; display: flex; }
+  .toc { flex: 0 0 208px; padding: 14px 10px; border-right: 1px solid var(--color-border-soft);
+    display: flex; flex-direction: column; gap: 2px; overflow: auto; }
+  .toc button { padding: 7px 10px; border-radius: 7px; text-align: left;
+    font-size: calc(13px * var(--text-scale)); color: var(--color-text-secondary); }
+  .toc button:hover { background: var(--color-hover); }
+  .toc button.on { background: var(--color-active); color: var(--color-primary); font-weight: 600; }
+  .help-body { flex: 1; min-width: 0; overflow: auto; padding: 20px 24px; }
+  .help-body h2 { font-size: calc(17px * var(--text-scale)); margin-bottom: 12px; }
+  .help-body h4 { font-size: calc(13px * var(--text-scale)); margin: 16px 0 6px; }
+  .help-body p, .help-body li { font-size: calc(13px * var(--text-scale)); color: var(--color-text-secondary);
+    line-height: 1.8; }
+  .help-body ol, .help-body ul { padding-left: 18px; }
+  .help-body ul { list-style: disc; }
+  .help-body table { margin-top: 8px; }
+
+  /* ═══════ 对话框 / 提示 ═══════ */
+  .scrim {
+    position: fixed; inset: 0; z-index: 150; display: grid; place-items: center;
+    background: rgba(0,0,0,.4); animation: fadeIn 140ms var(--ease);
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .dialog {
+    width: 440px; max-width: calc(100vw - 40px); max-height: calc(100vh - 80px); overflow: auto;
+    border-radius: 12px; background: var(--color-bg);
+    box-shadow: 0 24px 64px rgba(0,0,0,.28); animation: dialogIn 160ms var(--ease);
+  }
+  @keyframes dialogIn { from { opacity: 0; transform: translateY(8px) scale(.99); } to { opacity: 1; transform: none; } }
+  .dialog-head { display: flex; align-items: center; padding: 14px 16px;
+    border-bottom: 1px solid var(--color-border-soft); font-size: calc(14px * var(--text-scale)); font-weight: 600; }
+  .dialog-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .dialog-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px;
+    border-top: 1px solid var(--color-border-soft); }
+
+  .toasts { position: fixed; top: 16px; right: 16px; z-index: 200; display: flex;
+    flex-direction: column; gap: 8px; align-items: flex-end; }
+  .toast {
+    padding: 9px 14px; border-radius: 9px; background: rgba(29,29,31,.92); color: #fff;
+    font-size: calc(12px * var(--text-scale)); box-shadow: 0 8px 24px rgba(0,0,0,.2);
+    animation: toastIn 160ms var(--ease);
+  }
+  .toast.out { animation: toastOut 160ms var(--ease) forwards; }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+  @keyframes toastOut { to { opacity: 0; transform: translateY(-6px); } }
+
+  .reviewer {
+    position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 220;
+    display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 12px;
+    border: 1px solid var(--color-border-soft); border-radius: 999px;
+    background: rgba(255,255,255,.9); backdrop-filter: blur(12px);
+    box-shadow: 0 8px 24px rgba(0,0,0,.12); font-size: calc(11px * var(--text-scale));
+    color: var(--color-text-secondary);
+  }
+  html[data-theme="dark"] .reviewer { background: rgba(28,28,30,.9); }
+  .reviewer button { padding: 4px 10px; border-radius: 999px;
+    font-size: calc(11px * var(--text-scale)); color: var(--color-text); }
+  .reviewer button:hover { background: var(--color-hover); }
+
+  /* ═══════ 一键算 · 看板 ═══════ */
+  .board { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .board-params { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap;
+    padding: 12px 16px; border-bottom: 1px solid var(--color-border-soft); }
+  .board-params .field > label { font-size: calc(11px * var(--text-scale)); }
+  .board-params .input { height: 30px; font-size: calc(12px * var(--text-scale)); }
+  .param-net { width: 170px; }
+  .param-date { width: 128px; }
+  .board-params .segmented button { height: 24px; padding: 0 10px; }
+
+  .board-features { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 9px 16px; border-bottom: 1px solid var(--color-border-soft);
+    background: var(--color-bg-sunken); }
+  .feature { display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 13px;
+    border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-bg);
+    font-size: calc(12px * var(--text-scale)); color: var(--color-text-secondary);
+    transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
+  .feature:hover { border-color: var(--color-text-tertiary); }
+  .feature:active { transform: translateY(1px); }
+  .feature.on { border-color: var(--color-primary); background: var(--color-active);
+    color: var(--color-primary); font-weight: 600; }
+  .feature .tick { width: 13px; height: 13px; border-radius: 999px; display: grid; place-items: center;
+    border: 1.5px solid currentColor; font-size: calc(8px * var(--text-scale)); line-height: 1; }
+  .feature.on .tick { background: var(--color-primary); color: var(--color-on-primary);
+    border-color: var(--color-primary); }
+  .cmetric { display: inline-flex; align-items: center; gap: 7px; height: 26px; padding: 0 12px;
+    border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-bg);
+    font-size: calc(11px * var(--text-scale)); color: var(--color-text-secondary);
+    transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease); }
+  .cmetric:hover { border-color: var(--color-text-tertiary); }
+  .cmetric.on { border-color: var(--color-primary); background: var(--color-active);
+    color: var(--color-primary); font-weight: 600; }
+  .cmetric .tick { width: 12px; height: 12px; border-radius: 999px; display: grid;
+    place-items: center; border: 1.5px solid currentColor;
+    font-size: calc(8px * var(--text-scale)); line-height: 1; }
+  .cmetric.on .tick { background: var(--color-primary); color: var(--color-on-primary);
+    border-color: var(--color-primary); }
+
+  .board-scope { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 7px 16px;
+    border-bottom: 1px solid var(--color-border-soft);
+    font-size: calc(11px * var(--text-scale)); color: var(--color-text-tertiary); }
+  .board-scope b { font-weight: 600; color: var(--color-text-secondary); }
+
+  .board-body { flex: 1; min-height: 0; overflow: auto; padding: 12px 16px;
+    display: flex; flex-direction: column; gap: 12px; }
+  .board-section { border: 1px solid var(--color-border-soft); border-radius: 10px;
+    background: var(--color-bg); overflow: hidden; animation: viewIn 180ms var(--ease); }
+  .board-section-head { display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+    border-bottom: 1px solid var(--color-border-soft); }
+  .board-section-title { font-size: calc(13px * var(--text-scale)); font-weight: 600; }
+  .board-section-sub { font-size: calc(11px * var(--text-scale)); color: var(--color-text-tertiary); }
+  .summary-pill { margin-left: auto; display: flex; align-items: baseline; gap: 7px;
+    padding: 4px 10px; border-radius: 8px; background: var(--color-active); }
+  .summary-pill .k { font-size: calc(10px * var(--text-scale)); color: var(--color-text-secondary); }
+  .summary-pill .v { font-size: calc(15px * var(--text-scale)); font-weight: 600;
+    color: var(--color-primary); font-variant-numeric: tabular-nums; }
+  .summary-pill .note { font-size: calc(10px * var(--text-scale)); color: var(--color-text-tertiary); }
+
+  .matrix-wrap { max-height: 42vh; overflow: auto; }
+  table.matrix thead th { position: sticky; top: 0; z-index: 6; }
+  table.matrix { border-collapse: separate; border-spacing: 0; width: 100%;
+    font-size: calc(11.5px * var(--text-scale)); font-variant-numeric: tabular-nums; }
+  table.matrix th, table.matrix td { height: 26px; padding: 0 8px; white-space: nowrap;
+    border-bottom: 1px solid var(--color-border-soft); border-right: 1px solid var(--color-border-soft); }
+  table.matrix thead th { background: var(--color-bg-sunken); color: var(--color-text-secondary);
+    font-weight: 500; text-align: center; }
+  table.matrix .col-area { width: 62px; min-width: 62px; max-width: 62px; text-align: left; }
+  table.matrix .col-prov { width: 96px; min-width: 96px; max-width: 96px; text-align: left; }
+  table.matrix .num { text-align: right; width: 62px; }
+  table.matrix .sticky1 { position: sticky; left: 0; z-index: 3; background: var(--color-bg); }
+  table.matrix .sticky2 { position: sticky; left: 62px; z-index: 3; background: var(--color-bg); }
+  table.matrix thead .sticky1, table.matrix thead .sticky2 { z-index: 5; background: var(--color-bg-sunken); }
+  table.matrix tbody tr:hover td { background: var(--color-hover); }
+  table.matrix tr.total td { font-weight: 600; background: var(--color-bg-sunken); }
+  table.matrix .band-group { border-left: 1px solid var(--color-border); }
+  table.matrix td.band-first { border-left: 1px solid var(--color-border); }
+  table.matrix .blank { color: var(--color-text-tertiary); }
+  .board-empty { flex: 1; display: grid; place-items: center; padding: 40px;
+    color: var(--color-text-secondary); font-size: calc(13px * var(--text-scale)); text-align: center; }
+
+  /* ═══════ 表格选择 / 撤销下拉 / 字段选择器 ═══════ */
+  .table th.col-head { cursor: pointer; user-select: none; }
+  .table th.col-head:hover { background: var(--color-hover); }
+  .table th.row-no-head { width: 38px; text-align: center; position: sticky; left: 0; z-index: 5; }
+  .table td.row-no { width: 38px; text-align: center; cursor: pointer; position: sticky; left: 0; z-index: 2;
+    background: var(--color-bg-sunken); color: var(--color-text-tertiary);
+    font-size: calc(10px * var(--text-scale)); }
+  .table td.row-no:hover { color: var(--color-primary); }
+  .table td.sel-cell { box-shadow: inset 0 0 0 2px var(--color-primary); background: var(--color-active); }
+  .table tr.sel-row td { background: var(--color-active); }
+  .table th.col-sel, .table td.col-sel { background: var(--color-active) !important; color: var(--color-primary); }
+
+  .split-btn { display: inline-flex; align-items: center; border-radius: 7px; position: relative; }
+  .split-btn > button { height: 28px; min-width: 26px; padding: 0 6px; border-radius: 7px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--color-text-secondary); transition: background var(--dur-fast) var(--ease); }
+  .split-btn > button:hover:not(:disabled) { background: var(--color-hover); color: var(--color-text); }
+  .split-btn > button:disabled { opacity: 0.35; }
+  .split-btn .caret { min-width: 14px; padding: 0 1px; }
+  .undo-menu { position: absolute; top: calc(100% + 4px); left: 0; z-index: 95; min-width: 214px;
+    padding: 6px; border: 1px solid var(--color-border-soft); border-radius: 10px;
+    background: var(--color-bg); box-shadow: 0 12px 32px rgba(0,0,0,.16); animation: popIn 120ms var(--ease); }
+  .undo-menu .cap { padding: 2px 8px 5px; font-size: calc(10px * var(--text-scale));
+    color: var(--color-text-tertiary); }
+  .undo-menu .item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 8px;
+    border-radius: 6px; text-align: left; font-size: calc(12px * var(--text-scale)); color: var(--color-text); }
+  .undo-menu .item:hover { background: var(--color-hover); }
+  .undo-menu .item.pending { color: var(--color-text-tertiary); }
+  .undo-menu .mark { width: 10px; color: var(--color-primary); font-size: calc(10px * var(--text-scale)); }
+  .undo-menu .sep { height: 1px; margin: 5px 4px; background: var(--color-border-soft); }
+
+  .picker { position: fixed; z-index: 130; width: 274px; padding: 8px;
+    border: 1px solid var(--color-border-soft); border-radius: 10px; background: var(--color-bg);
+    box-shadow: 0 16px 40px rgba(0,0,0,.18); animation: popIn 120ms var(--ease); }
+  .picker input[type="text"] { height: 28px; margin-bottom: 6px;
+    font-size: calc(12px * var(--text-scale)); }
+  .picker-list { max-height: 216px; overflow: auto; display: flex; flex-direction: column; gap: 1px; }
+  .picker-item { display: flex; align-items: center; gap: 8px; padding: 5px 6px; border-radius: 6px;
+    font-size: calc(12px * var(--text-scale)); cursor: pointer; }
+  .picker-item:hover { background: var(--color-hover); }
+  .picker-item.disabled { color: var(--color-text-tertiary); cursor: not-allowed; }
+  .picker-item.disabled:hover { background: transparent; }
+  .picker-item.disabled .dtype { color: var(--color-warning); }
+  .picker-item .dtype { margin-left: auto; font-size: calc(10px * var(--text-scale));
+    color: var(--color-text-tertiary); }
+  .picker-foot { display: flex; align-items: center; gap: 8px; margin-top: 6px; padding-top: 7px;
+    border-top: 1px solid var(--color-border-soft); }
+
+  /* ═══════ 分析：筛选区 / 指标区 ═══════ */
+  .zone-badge { display: inline-flex; align-items: center; height: 18px; padding: 0 7px;
+    border-radius: 5px; background: var(--color-bg-secondary); color: var(--color-text-secondary);
+    font-size: calc(10px * var(--text-scale)); font-weight: 600; }
+  .zone-badge-metric { background: var(--color-active); color: var(--color-primary); }
+  .filter-row { display: grid; grid-template-columns: 18px 1.05fr 0.95fr 1fr 24px; gap: 6px; align-items: center; }
+  .filter-row .input, .metric-row2 .input { height: 28px; font-size: calc(12px * var(--text-scale)); }
+  .metric-row2 { display: grid; grid-template-columns: 18px 1.2fr 1fr 24px; gap: 6px; align-items: center; }
+  .order { display: flex; flex-direction: column; gap: 2px; }
+  .order button { height: 11px; line-height: 1; font-size: calc(8px * var(--text-scale));
+    color: var(--color-text-tertiary); border-radius: 3px; }
+  .order button:hover:not(:disabled) { background: var(--color-hover); color: var(--color-text); }
+  .order button:disabled { opacity: 0.28; }
+  .op-chip { text-align: center; font-size: calc(10px * var(--text-scale));
+    color: var(--color-text-tertiary); padding: 3px 0; letter-spacing: .04em; }
+  .op-select { height: 26px; width: 46px; text-align: center; padding: 0 2px;
+    font-size: calc(12px * var(--text-scale)); }
+  .zone-derived { padding: 8px 12px 10px; border-top: 1px dashed var(--color-border-soft);
+    font-size: calc(11px * var(--text-scale)); color: var(--color-text-secondary); }
+  .zone-derived b { color: var(--color-primary); font-weight: 600; }
+  .two-input { display: grid; grid-template-columns: 1fr 12px 1fr; gap: 4px; align-items: center; }
+  .no-value { color: var(--color-text-tertiary); font-size: calc(11px * var(--text-scale));
+    text-align: center; }
+
+  /* ═══════ 一键算：多选网点 / 对比图表 / 警示 ═══════ */
+  .warn-line { color: var(--color-warning); font-weight: 600; }
+  .chart-legend { display: flex; gap: 14px; flex-wrap: wrap; padding: 0 14px 12px;
+    font-size: calc(11px * var(--text-scale)); color: var(--color-text-secondary); }
+  .chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .chart-legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  .net-picker { position: fixed; z-index: 130; width: 250px; padding: 8px;
+    border: 1px solid var(--color-border-soft); border-radius: 10px; background: var(--color-bg);
+    box-shadow: 0 16px 40px rgba(0,0,0,.18); animation: popIn 120ms var(--ease); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell" id="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <span class="brand-mark">算</span>
+      <span class="brand-text">
+        <span class="brand-title">算账工作台</span>
+        <span class="brand-sub">Accounting Workbench</span>
+      </span>
+    </div>
+
+    <button class="current" id="current-card" data-tip="当前项目" hidden>
+      <span class="current-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 10h17M9.5 4.5v15"/></svg>
+      </span>
+      <span class="current-text">
+        <span class="current-name" id="cp-name">—</span>
+        <span class="current-meta" id="cp-meta">—</span>
+      </span>
+    </button>
+
+    <nav class="nav" id="nav">
+      <div class="item-wrap" data-tip="首页"><button class="item" data-page="home">
+        <span class="item-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.6 12 4l8 6.6"/><path d="M6.2 9.8V20h11.6V9.8"/><path d="M10 20v-4.6h4V20"/></svg></span>
+        <span class="label">首页</span></button></div>
+
+      <div class="item-wrap" data-tip="文件"><button class="item" id="file-menu-btn">
+        <span class="item-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h7l4.5 4.5V21h-11.5z"/><path d="M13.2 3v4.7h4.8"/><path d="M9 12.5h6M9 16h4.5"/></svg></span>
+        <span class="label">文件</span></button></div>
+
+      <div class="item-wrap" data-tip="项目"><button class="item" data-page="projects">
+        <span class="item-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.2a2 2 0 0 1 2-2h3.4l2 2h7.6a2 2 0 0 1 2 2v8.6a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg></span>
+        <span class="label">项目</span></button></div>
+
+      <div class="item-wrap" data-tip="历史记录"><button class="item" data-page="history">
+        <span class="item-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.6 11.6a8.4 8.4 0 1 0 2.4-6"/><path d="M3.6 4.4v4.4h4.4"/><path d="M12 8.4V12l2.8 1.8"/></svg></span>
+        <span class="label">历史记录</span></button></div>
+
+      <div class="item-wrap" data-tip="帮助"><button class="item" data-page="help">
+        <span class="item-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.4"/><path d="M9.7 9.4a2.4 2.4 0 1 1 3.4 2.2c-.7.4-1.1 1-1.1 1.8v.3"/><path d="M12 17h.01"/></svg></span>
+        <span class="label">帮助</span></button></div>
+    </nav>
+
+    <div class="footer-nav">
+      <div class="item-wrap" data-tip="设置"><button class="item" data-page="settings">
+        <span class="item-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5h10M18.5 7.5H20"/><path d="M4 16.5h4M12.5 16.5H20"/><circle cx="16" cy="7.5" r="2.4"/><circle cx="10" cy="16.5" r="2.4"/></svg></span>
+        <span class="label">设置</span></button></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="card">
+
+      <!-- ══ 首页 ══ -->
+      <section class="view" id="view-home">
+        <div class="welcome">
+          <div class="welcome-inner">
+            <div>
+              <h1>算账工作台</h1>
+              <p class="tagline">本地单机运行 · 账单数据不离开这台电脑</p>
+            </div>
+            <div class="actions">
+              <button class="btn btn-primary btn-lg" id="home-resume" hidden>继续当前项目</button>
+              <button class="btn btn-primary btn-lg" id="home-new">新建项目</button>
+            </div>
+            <ul class="hints">
+              <li class="hintrow"><span class="keys"><kbd id="mod-1">Ctrl</kbd><kbd>Shift</kbd><kbd>N</kbd></span>点击「新建项目」创建新项目</li>
+              <li class="hintrow">将文件拖到此处创建新项目</li>
+              <li class="hintrow"><span class="keys"><kbd id="mod-2">Ctrl</kbd><kbd>Shift</kbd><kbd>K</kbd></span>分析数据</li>
+              <li class="hintrow"><span class="keys"><kbd id="mod-3">Ctrl</kbd><kbd>S</kbd></span>保存项目</li>
+            </ul>
+            <ul class="notes">
+              <li class="note">请将数据格式（公式、条件格式、颜色填充等）清洗后导入</li>
+              <li class="note">支持 xlsx、xls、csv 文件，最大支持 200 列、100000 行</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ 工作区 ══ -->
+      <section class="view" id="view-workspace" hidden>
+        <header class="ws-head">
+          <div class="ws-identity">
+            <h1 class="ws-title" id="ws-title">—</h1>
+            <p class="ws-meta" id="ws-meta">—</p>
+          </div>
+          <div class="ws-actions">
+            <span class="save-state"><span class="dot" id="dirty-dot"></span><span id="save-label">已保存</span></span>
+            <button class="btn btn-secondary" id="ws-save">保存</button>
+            <button class="btn btn-secondary" id="ws-analyze">分析</button>
+            <button class="btn btn-primary" id="ws-board">一键算</button>
+          </div>
+        </header>
+
+        <div class="notice"><span>列数超过 200，仅保留前 200 列（已自动截断）</span></div>
+
+        <div class="toolbar">
+          <div class="group">
+            <div class="split-btn">
+              <button data-op="undo" id="undo-btn" title="撤销 Ctrl+Z">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7 4.5 11.5 9 16"/><path d="M4.5 11.5H14a5.5 5.5 0 0 1 0 11h-2"/></svg>
+              </button>
+              <button class="caret" data-uimenu="undo" title="撤销到哪一步">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5 12 15.5 18 9.5"/></svg>
+              </button>
+            </div>
+            <div class="split-btn">
+              <button data-op="redo" id="redo-btn" title="重做 Ctrl+Shift+Z">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7 19.5 11.5 15 16"/><path d="M19.5 11.5H10a5.5 5.5 0 0 0 0 11h2"/></svg>
+              </button>
+              <button class="caret" data-uimenu="redo" title="重做到哪一步">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5 12 15.5 18 9.5"/></svg>
+              </button>
+            </div>
+            <button class="tool-btn" data-op="reset" title="重置到导入时状态">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4.5v5h5"/></svg>
+            </button>
+          </div>
+          <div class="divider"></div>
+          <div class="group">
+            <button class="tool-btn" data-op="insert_rows" title="插入行">+ 行</button>
+            <button class="tool-btn" data-op="insert_cols" title="插入列">+ 列</button>
+            <button class="tool-btn" data-op="delete_rows" title="删除选中行">− 行</button>
+            <button class="tool-btn" data-op="delete_cols" title="删除选中列">− 列</button>
+          </div>
+          <div class="spacer"></div>
+          <div class="find">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="6.4"/><path d="M16 16l4.5 4.5"/></svg>
+            <input id="quick-filter" placeholder="查找单元格…" />
+          </div>
+        </div>
+
+        <div class="grid-host">
+          <table class="table" id="grid"></table>
+        </div>
+
+        <footer class="statusbar">
+          <span id="sb-selected">未选择</span>
+          <span id="sb-sum"></span>
+          <span class="right">
+            <span id="sb-rows">—</span>
+            <span>Ctrl+F 查找 · 右键更多操作</span>
+          </span>
+        </footer>
+      </section>
+
+      <!-- ══ 分析页 ══ -->
+      <section class="view" id="view-analysis" hidden>
+        <header class="page-head">
+          <div>
+            <div class="page-title">分析</div>
+            <div class="page-sub" id="analysis-sub">— · 固定规则：网点货量分析</div>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-ghost" id="analysis-help">帮助</button>
+            <button class="btn btn-secondary" id="analysis-regression">线性回归拟合</button>
+            <button class="btn btn-secondary" id="analysis-back">返回表格</button>
+          </div>
+        </header>
+
+        <div class="split">
+          <div class="split-left">
+            <div class="config">
+              <div class="section">
+                <div class="section-head"><span class="section-title">时间范围</span>
+                  <span class="spacer" style="flex:1"></span>
+                  <div class="segmented" id="a-range"><button class="on" data-v="本月">本月</button><button data-v="上月">上月</button><button data-v="自定义">自定义</button></div>
+                </div>
+                <div class="section-body">
+                  <div class="row">
+                    <input class="input" type="date" id="a-from" value="2026-10-01" />
+                    <span class="muted">至</span>
+                    <input class="input" type="date" id="a-to" value="2026-10-31" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="section zone-filter">
+                <div class="section-head">
+                  <span class="zone-badge">分组</span>
+                  <span class="section-title">筛选条件</span>
+                  <span class="page-sub">值选「全部」即按该字段展开</span>
+                  <span class="spacer" style="flex:1"></span>
+                  <button class="btn btn-ghost btn-icon" id="a-add-filter" title="添加条件">+</button>
+                </div>
+                <div class="section-body" id="a-filters"></div>
+              </div>
+
+              <div class="section zone-metric">
+                <div class="section-head">
+                  <span class="zone-badge zone-badge-metric">计算</span>
+                  <span class="section-title">指标</span>
+                  <span class="page-sub">需计算多个指标时请用 AND 连接；指标内的计算规则请用 ＋ － × ÷ 连接</span>
+                  <span class="spacer" style="flex:1"></span>
+                  <button class="btn btn-ghost btn-icon" id="a-add-metric" title="添加指标">+</button>
+                </div>
+                <div class="section-body" id="a-metrics"></div>
+                <div class="zone-derived" id="a-derived"></div>
+              </div>
+            </div>
+
+            <div class="config-foot">
+              <button class="btn btn-primary" id="run-analysis">开始计算</button>
+              <span class="tiny" id="config-status">SUMIFS 口径 · 在 200 行演示数据上真实计算</span>
+            </div>
+          </div>
+
+          <div class="split-right">
+            <div class="result-head">
+              <div class="tabs" id="result-tabs">
+                <button class="on" data-tab="table">表格</button>
+                <button data-tab="chart">图表</button>
+              </div>
+              <span class="spacer" style="flex:1"></span>
+              <div class="item-wrap" style="position:relative">
+                <button class="btn btn-secondary" id="export-btn">导出</button>
+                <div class="flyout" id="export-menu" hidden style="left:auto;right:0;top:calc(100% + 6px)">
+                  <button data-export="xlsx">导出为 xlsx</button>
+                  <button data-export="xls">导出为 xls</button>
+                  <button data-export="csv">导出为 CSV</button>
+                  <div class="sep"></div>
+                  <button data-export="pdf">图表导出 PDF</button>
+                  <button data-export="jpeg">图表导出 JPEG</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="result-body" id="result-body">
+              <div class="result-empty" id="result-empty">
+                <div style="text-align:center">
+                  <div style="font-size:13px;color:var(--color-text-secondary)">尚未计算</div>
+                  <div class="tiny" style="margin-top:4px">左侧配置条件与指标后点击「开始计算」</div>
+                </div>
+              </div>
+              <div id="result-table" hidden></div>
+              <div id="chart-panel" hidden>
+                <div class="chart-controls">
+                  <div class="chart-row">
+                    <span class="chart-label">图表类型</span>
+                    <div class="segmented" id="chart-type">
+                      <button data-v="line" class="on">折线</button>
+                      <button data-v="bar">柱状</button>
+                      <button data-v="pie">饼图</button>
+                      <button data-v="scatter">散点</button>
+                    </div>
+                  </div>
+                  <div class="chart-row">
+                    <span class="chart-label">X 轴</span>
+                    <button class="btn btn-secondary" id="chart-x-btn" style="height:26px;min-width:156px;justify-content:space-between">
+                      <span id="chart-x-label">—</span>
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5 12 15.5 18 9.5"/></svg>
+                    </button>
+                  </div>
+                  <div class="chart-row">
+                    <span class="chart-label">Y 指标</span>
+                    <div id="chart-y" class="row" style="flex-wrap:wrap;gap:6px"></div>
+                  </div>
+                </div>
+                <div class="chart-box" id="result-chart"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ 项目页 ══ -->
+      <section class="view" id="view-projects" hidden>
+        <header class="page-head">
+          <div>
+            <div class="page-title">项目</div>
+            <div class="page-sub">管理、合并与清理本机项目</div>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-secondary" id="cleanup-auto">清理未命名</button>
+            <button class="btn btn-secondary" id="merge-selected" disabled>合并所选</button>
+            <button class="btn btn-primary" id="new-from-projects">新建项目</button>
+          </div>
+        </header>
+
+        <div class="list-toolbar">
+          <input class="input" style="max-width:240px" id="project-search" placeholder="搜索项目名 / 创建人…" />
+          <div class="segmented" id="project-filter">
+            <button class="on" data-v="all">全部</button>
+            <button data-v="manual">手动创建</button>
+            <button data-v="auto">自动保存</button>
+          </div>
+          <span class="spacer" style="flex:1"></span>
+          <span class="tiny" id="project-count">—</span>
+        </div>
+
+        <div class="list-body">
+          <table class="table" id="project-table"></table>
+        </div>
+
+        <footer class="list-foot">
+          <span>共 8 个项目 · 每页 20 条</span>
+          <div class="pager"><button disabled>‹</button><button class="on">1</button><button disabled>›</button></div>
+        </footer>
+      </section>
+
+      <!-- ══ 历史记录 ══ -->
+      <section class="view" id="view-history" hidden>
+        <header class="page-head">
+          <div>
+            <div class="page-title">历史记录</div>
+            <div class="page-sub">按时间找回最近分析过的项目</div>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-secondary" id="history-to-projects">到项目管理</button>
+          </div>
+        </header>
+
+        <div class="history-wrap">
+          <aside class="filters">
+            <div class="field"><label>项目名</label><input class="input" placeholder="模糊匹配" /></div>
+            <div class="field"><label>创建人</label><input class="input" placeholder="模糊匹配" /></div>
+            <div class="field"><label>创建时间</label>
+              <input class="input" type="date" value="2026-09-01" />
+              <input class="input" type="date" value="2026-10-09" />
+            </div>
+            <button class="btn btn-secondary" id="history-reset">重置筛选</button>
+          </aside>
+          <div class="history-main">
+            <div class="list-body" id="history-list"></div>
+            <footer class="list-foot">
+              <span id="history-count">—</span>
+              <div class="pager" id="history-pager"></div>
+            </footer>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ 合并向导 ══ -->
+      <section class="view" id="view-merge" hidden>
+        <header class="page-head">
+          <div>
+            <div class="page-title">合并项目</div>
+            <div class="page-sub" id="merge-sub">已选 2 个项目</div>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-ghost" id="merge-cancel">取消</button>
+          </div>
+        </header>
+
+        <div class="steps" id="merge-steps">
+          <div class="step on" data-step="1"><span class="step-no">1</span>选择项目</div>
+          <div class="step-sep"></div>
+          <div class="step" data-step="2"><span class="step-no">2</span>字段对齐</div>
+          <div class="step-sep"></div>
+          <div class="step" data-step="3"><span class="step-no">3</span>命名确认</div>
+        </div>
+
+        <div class="wizard-body">
+          <div data-panel="1">
+            <div class="card-soft">
+              <div class="kv"><b>已选项目</b><span>10月华东区网管账单、9月华东区网管账单</span></div>
+              <div class="kv"><b>合并规则</b><span>字段名精确匹配，不同名字段各占一列，字段顺序以字段数最多的项目为准</span></div>
+              <div class="kv"><b>基准项目</b><span>10月华东区网管账单（字段最多，12 列）</span></div>
+            </div>
+          </div>
+
+          <div data-panel="2" hidden>
+            <div class="card-soft">
+              <div class="kv"><b>列顺序</b><span>账单时间 · 运单号 · 寄件所属一级网点 · 目的所属省份 · 公斤段 · 结算重量 · 现价 · 原价 · （仅 B 有）备注</span></div>
+              <div class="kv"><b>来源分布</b><span>A 12,480 行 · B 8,320 行</span></div>
+              <div class="kv"><b>合并结果</b><span>20,800 行 × 9 列</span></div>
+            </div>
+            <div class="card-soft" style="padding:0;overflow:hidden">
+              <table class="table">
+                <thead><tr><th>来源</th><th>账单时间</th><th>寄件所属一级网点</th><th>结算重量</th><th>备注</th></tr></thead>
+                <tbody>
+                  <tr><td>A 10月</td><td>2026-10-01</td><td>杭州西湖一部</td><td class="num">2.40</td><td>—</td></tr>
+                  <tr><td>A 10月</td><td>2026-10-01</td><td>宁波鄞州二部</td><td class="num">4.10</td><td>—</td></tr>
+                  <tr><td>B 9月</td><td>2026-09-02</td><td>杭州西湖一部</td><td class="num">1.90</td><td>补录</td></tr>
+                  <tr><td>B 9月</td><td>2026-09-03</td><td>温州鹿城三部</td><td class="num">3.30</td><td>—</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="tiny">预览含来源列，来源列不会写入合并结果。</div>
+          </div>
+
+          <div data-panel="3" hidden>
+            <div class="field"><label>合并后项目名</label><input class="input" id="merge-name" value="华东区账单合并（10月 + 9月）" /></div>
+            <div class="field"><label>创建人</label><input class="input" value="张三" /></div>
+            <div class="card-soft">
+              <div class="kv"><b>结果规模</b><span>20,800 行 × 9 列</span></div>
+              <div class="kv"><b>预计耗时</b><span>约 1.2 秒</span></div>
+            </div>
+          </div>
+        </div>
+
+        <footer class="wizard-foot">
+          <span class="tiny" id="merge-hint">选择要合并的项目后进入字段对齐预览</span>
+          <span class="spacer" style="flex:1"></span>
+          <button class="btn btn-secondary" id="merge-prev" disabled>上一步</button>
+          <button class="btn btn-primary" id="merge-next">下一步</button>
+        </footer>
+      </section>
+
+      <!-- ══ 线性回归 ══ -->
+      <section class="view" id="view-regression" hidden>
+        <header class="page-head">
+          <div>
+            <div class="page-title">线性回归拟合</div>
+            <div class="page-sub">临界转运费现价与盈亏平衡货量</div>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-secondary" data-export="nop">导出 PDF</button>
+            <button class="btn btn-secondary" data-export="nop">导出 JPEG</button>
+          </div>
+        </header>
+
+        <div class="split">
+          <div class="reg-left">
+            <div class="segmented" id="reg-mode"><button class="on" data-mode="manual">手动输入</button><button data-mode="table">从表格取数</button></div>
+
+            <div id="reg-manual">
+              <div class="field"><label>转运费现价 P（元/kg）</label><input class="input" id="reg-p" value="3.85" /></div>
+              <div class="field"><label>转运费原价 P0（元/kg）</label><input class="input" id="reg-p0" value="4.60" /></div>
+              <div class="field"><label>折扣 d（自动 = P / P0）</label><input class="input" id="reg-d" value="0.837" readonly /></div>
+              <div class="field"><label>杂费 B（元）</label><input class="input" id="reg-b" value="0" /></div>
+              <div class="field"><label>操作单位成本 C（元/kg）*必填</label><input class="input" id="reg-c" value="2.10" /></div>
+              <div class="field"><label>货量上限 Z（kg）*必填</label><input class="input" id="reg-z" value="10000" /></div>
+            </div>
+
+            <div id="reg-table" hidden>
+              <div class="field"><label>数据集</label><select class="input"><option>10月华东区网管账单</option><option>9月华东区网管账单</option></select></div>
+              <div class="card-soft">
+                <div class="kv"><b>转运费</b><span class="chip chip-ok">已找到</span></div>
+                <div class="kv"><b>转运费原价</b><span class="chip chip-ok">已找到</span></div>
+                <div class="kv"><b>收寄站操作费</b><span class="chip chip-ok">已找到</span></div>
+                <div class="kv"><b>收寄站操作费原价</b><span class="chip chip-ok">已找到</span></div>
+              </div>
+              <div class="tiny">P = 转运费 + 收寄站操作费；P0 = 转运费原价 + 收寄站操作费原价</div>
+            </div>
+
+            <div class="acc">
+              <button class="acc-head" data-acc="formula">公式说明 <span>▾</span></button>
+              <div class="acc-body" hidden>
+                <div class="formula">d = P / P0<br/>A = Z × P0 × d + B<br/>L = (P − C) × Z + B<br/>P_critical = C − B / Z<br/>break_even_volume = B / (C − P)</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="reg-right">
+            <div class="summary">
+              <div class="summary-card"><div class="summary-label">临界价 P_critical（Z=10,000kg）</div><div class="summary-value" id="reg-out-crit">—</div></div>
+              <div class="summary-card"><div class="summary-label">当前利润 L</div><div class="summary-value" id="reg-out-profit">—</div></div>
+              <div class="summary-card"><div class="summary-label">盈亏平衡货量</div><div class="summary-value" id="reg-out-be">—</div></div>
+            </div>
+            <div class="card-soft grow" style="display:flex;flex-direction:column;min-height:0;padding:0;overflow:hidden">
+              <div class="chart-box" id="reg-chart"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ 设置 ══ -->
+      <section class="view" id="view-settings" hidden>
+        <header class="page-head">
+          <div>
+            <div class="page-title">设置</div>
+            <div class="page-sub">外观、数据与关于</div>
+          </div>
+        </header>
+        <div class="settings">
+          <div class="settings-inner">
+            <div class="setting-group">
+              <h3>外观</h3>
+              <div class="setting-row">
+                <div><div class="name">主题</div><div class="desc">深色主题在弱光环境下更省眼</div></div>
+                <div class="control">
+                  <div class="segmented" id="theme-seg">
+                    <button class="on" data-theme="light">浅色</button>
+                    <button data-theme="dark">深色</button>
+                  </div>
+                </div>
+              </div>
+              <div class="setting-row">
+                <div><div class="name">字号</div><div class="desc">影响全应用的正文与表格字号</div></div>
+                <div class="control">
+                  <div class="segmented" id="scale-seg">
+                    <button data-scale="0.9">小</button>
+                    <button class="on" data-scale="1">标准</button>
+                    <button data-scale="1.1">大</button>
+                    <button data-scale="1.2">特大</button>
+                  </div>
+                  <span class="preview-text">预览：账单时间</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <h3>数据</h3>
+              <div class="setting-row">
+                <div><div class="name">数据目录</div><div class="desc">~/.accounting-workbench</div></div>
+                <div class="control"><button class="btn btn-secondary" data-toast="已在文件管理器中打开数据目录">打开</button></div>
+              </div>
+              <div class="setting-row">
+                <div><div class="name">缓存占用</div><div class="desc">128.4 MB · 8 个项目</div></div>
+                <div class="control"><button class="btn btn-secondary" data-toast="已清理 32.1 MB 过期缓存">清理</button></div>
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <h3>关闭行为</h3>
+              <div class="setting-row">
+                <div><div class="name">关闭时自动保存</div><div class="desc">未主动保存的项目会在关窗时自动存为「未命名 N」</div></div>
+                <div class="control">
+                  <div class="segmented" id="close-save-seg">
+                    <button class="on" data-v="on">开启</button>
+                    <button data-v="off">关闭</button>
+                  </div>
+                </div>
+              </div>
+              <div class="setting-row">
+                <div><div class="name">模拟关闭应用</div><div class="desc">演示：拦截关窗 → 保存 → 退出</div></div>
+                <div class="control"><button class="btn btn-secondary" id="simulate-close">试一次</button></div>
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <h3>关于</h3>
+              <div class="setting-row">
+                <div><div class="name">算账工作台 v0.1.0</div><div class="desc">本地单机运行 · 数据不外传</div></div>
+                <div class="control"><button class="btn btn-secondary" data-toast="诊断包已导出到桌面">导出诊断包</button></div>
+              </div>
+              <div class="setting-row">
+                <div><div class="name">第三方许可</div><div class="desc">AG Grid · ECharts · matplotlib · Noto Sans CJK</div></div>
+                <div class="control"><button class="btn btn-secondary" data-toast="打开许可清单">查看</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ 帮助 ══ -->
+      <section class="view" id="view-help" hidden>
+        <header class="page-head">
+          <div>
+            <div class="page-title">帮助</div>
+            <div class="page-sub">软件说明文档</div>
+          </div>
+        </header>
+        <div class="help-wrap">
+          <aside class="toc" id="help-toc">
+            <button class="on" data-doc="start">快速上手</button>
+            <button data-doc="import">导入须知</button>
+            <button data-doc="rules">固定规则口径</button>
+            <button data-doc="ratio">占比说明</button>
+            <button data-doc="keys">快捷键</button>
+            <button data-doc="faq">常见问题</button>
+          </aside>
+          <div class="help-body" id="help-body"></div>
+        </div>
+      </section>
+
+      <!-- ══ 一键算 · 看板 ══ -->
+      <section class="view" id="view-board" hidden>
+        <header class="page-head">
+          <div>
+            <div class="page-title">一键算</div>
+            <div class="page-sub">选定口径直接出结果，不用再写公式</div>
+          </div>
+          <div class="page-actions">
+            <div class="item-wrap" style="position:relative">
+              <button class="btn btn-secondary" id="board-export-btn">导出</button>
+              <div class="flyout" id="board-export-menu" hidden style="left:auto;right:0;top:calc(100% + 6px);min-width:210px">
+                <div class="hint">当前选中的功能</div>
+                <button data-bexport="xlsx:current">导出 xlsx（当前）</button>
+                <button data-bexport="csv:current">导出 CSV（当前）</button>
+                <button data-bexport="pdf:current">导出 PDF（当前）</button>
+                <button data-bexport="jpeg:current">导出 JPEG（当前）</button>
+                <div class="sep"></div>
+                <div class="hint">全部功能（每功能一个 Sheet / 一页）</div>
+                <button data-bexport="xlsx:all">导出 xlsx（全部）</button>
+                <button data-bexport="pdf:all">导出 PDF（全部）</button>
+              </div>
+            </div>
+            <button class="btn btn-ghost" id="board-back">返回表格</button>
+          </div>
+        </header>
+
+        <div class="board">
+          <div class="board-params">
+            <div class="field">
+              <label>起止日期</label>
+              <div class="row">
+                <div class="segmented" id="b-range">
+                  <button data-v="本月" class="on">本月</button>
+                  <button data-v="上月">上月</button>
+                  <button data-v="自定义">自定义</button>
+                </div>
+                <input class="input param-date" type="date" id="b-from" value="2026-10-01" />
+                <span class="tiny">至</span>
+                <input class="input param-date" type="date" id="b-to" value="2026-10-31" />
+              </div>
+            </div>
+            <div class="field">
+              <label>网点（寄件所属一级网点）</label>
+              <button class="btn btn-secondary" id="b-net-btn" style="height:30px;min-width:178px;justify-content:space-between">
+                <span id="b-net-label">义乌稠江</span>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5 12 15.5 18 9.5"/></svg>
+              </button>
+            </div>
+            <div class="field">
+              <label>是否剔除</label>
+              <div class="segmented" id="b-excl">
+                <button data-v="全部">全部</button>
+                <button data-v="不剔除" class="on">不剔除</button>
+                <button data-v="剔除">剔除</button>
+              </div>
+            </div>
+            <div class="field">
+              <label>物品来源</label>
+              <div class="segmented" id="b-src">
+                <button data-v="全部">全部</button>
+                <button data-v="普通物品" class="on">普通物品</button>
+                <button data-v="审报物品">审报物品</button>
+              </div>
+            </div>
+            <div class="field">
+              <label>分组维度</label>
+              <button class="btn btn-secondary" id="b-dims-btn" style="height:30px;width:158px;justify-content:space-between">
+                <span id="b-dims-label">省份</span>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5 12 15.5 18 9.5"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="board-features">
+            <span class="tiny">计算功能（可多选 · 多选同屏）</span>
+            <button class="feature" data-feature="flow"><span class="tick"></span>货物流向</button>
+            <button class="feature" data-feature="discount"><span class="tick"></span>公斤段折扣</button>
+            <button class="feature" data-feature="price"><span class="tick"></span>公斤段单价</button>
+            <button class="feature" data-feature="compare"><span class="tick"></span>网点对比图表</button>
+          </div>
+
+          <div class="board-scope" id="board-scope"></div>
+          <div class="board-body" id="board-body"></div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <div class="edge">
+    <button class="handle" id="handle" type="button" title="收起侧边栏" aria-label="收起侧边栏">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 6.5 9 12l5.5 5.5"/></svg>
+    </button>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<div class="scrim" id="dialog-scrim" hidden>
+  <div class="dialog" role="dialog" aria-modal="true">
+    <div class="dialog-head" id="dialog-title">新建项目</div>
+    <div class="dialog-body" id="dialog-body"></div>
+    <div class="dialog-foot" id="dialog-foot"></div>
+  </div>
+</div>
+
+<div class="reviewer">
+  <span>可交互原型 · 点击侧边栏切换页面</span>
+  <button id="reset-demo">重置演示</button>
+</div>
+
+<script>
+/* ═══════════════════ 数据（演示用 fixture） ═══════════════════ */
+/* 20 列字段元信息：type 决定分析页里可用的运算符与算子 */
+const GRID_META = [
+  { name: "类区", type: "text" },
+  { name: "公斤段", type: "text" },
+  { name: "现价", type: "number" },
+  { name: "原价", type: "number" },
+  { name: "是否剔除", type: "text" },
+  { name: "运单号", type: "text" },
+  { name: "账单时间", type: "text" },
+  { name: "实际重量", type: "number" },
+  { name: "体积", type: "number" },
+  { name: "结算重量", type: "number" },
+  { name: "派件结算重量", type: "number" },
+  { name: "寄件网点", type: "text" },
+  { name: "寄件网点编号", type: "text" },
+  { name: "寄件所属一级网点", type: "text" },
+  { name: "寄件原所属分拨中心", type: "text" },
+  { name: "寄件省份", type: "text" },
+  { name: "目的所属一级网点", type: "text" },
+  { name: "目的所属省份", type: "text" },
+  { name: "账单中心", type: "text" },
+  { name: "件数", type: "number" }
+];
+
+/* 200 行演示数据：由固定种子生成，表格与分析页共用同一份 */
+function buildDemoRows() {
+  const rnd = mulberry32(20261001);
+  const areas = ["华东", "外围二区", "外围三区", "偏远"];
+  const bands = ["0-60", "60-150", "150-300", "300-500", "500-800", "800+"];
+  const nets = ["义乌稠江", "丽水缙云", "诸暨宏程", "金东三部", "金华婺城", "希音义乌揽"];
+  const provinces = ["浙江省", "广东省", "江苏省", "山东省", "福建省", "安徽省", "河南省", "河北省", "四川省", "湖北省"];
+  const rows = [];
+  for (let i = 0; i < 200; i += 1) {
+    const weight = Number((1 + rnd() * 95).toFixed(2));
+    const price = Number((weight * (0.28 + rnd() * 0.35)).toFixed(2));
+    const origin = Number((price / (0.78 + rnd() * 0.2)).toFixed(2));
+    rows.push({
+      类区: areas[Math.floor(rnd() * areas.length)],
+      公斤段: bands[Math.floor(rnd() * bands.length)],
+      现价: price,
+      原价: origin,
+      是否剔除: rnd() > 0.45 ? "不剔除" : "剔除",
+      运单号: "ZY86" + String(60000000 + i * 7919).slice(-9),
+      账单时间: `2026-${rnd() > 0.45 ? "10" : "09"}-${String(1 + Math.floor(rnd() * 28)).padStart(2, "0")}`,
+      实际重量: weight,
+      体积: Number((weight * 0.006).toFixed(3)),
+      结算重量: weight,
+      派件结算重量: weight,
+      寄件网点: nets[Math.floor(rnd() * nets.length)],
+      寄件网点编号: "5814" + String(10 + (i % 80)),
+      寄件所属一级网点: nets[Math.floor(rnd() * nets.length)],
+      寄件原所属分拨中心: "金华分拨中心",
+      寄件省份: "浙江省",
+      目的所属一级网点: "目的地" + (1 + (i % 9)),
+      目的所属省份: provinces[Math.floor(rnd() * provinces.length)],
+      账单中心: "总部财务中心",
+      件数: 1 + Math.floor(rnd() * 3)
+    });
+  }
+  return rows;
+}
+
+const DEMO_ROWS = buildDemoRows();
+
+const PROJECTS = [
+  { name:"10月华东区网管账单", creator:"张三", created:"2026-10-08", rows:12480, cols:44, result:true, opened:"2026-10-09 09:12", auto:false },
+  { name:"9月华东区网管账单", creator:"张三", created:"2026-10-02", rows:9120, cols:44, result:true, opened:"2026-10-02 18:40", auto:false },
+  { name:"8月浙江省内网点折扣", creator:"李四", created:"2026-09-05", rows:8320, cols:41, result:false, opened:"2026-09-06 10:02", auto:false },
+  { name:"618 大促单公斤价格", creator:"王五", created:"2026-06-20", rows:24100, cols:38, result:true, opened:"2026-06-21 09:30", auto:false },
+  { name:"Q2 分区货量汇总", creator:"李四", created:"2026-07-02", rows:51200, cols:44, result:true, opened:"2026-07-03 14:20", auto:false },
+  { name:"派费补贴核对（9月）", creator:"张三", created:"2026-09-18", rows:6420, cols:29, result:false, opened:"2026-09-18 16:55", auto:false },
+  { name:"转运费异常件排查", creator:"王五", created:"2026-09-28", rows:1380, cols:31, result:true, opened:"2026-09-29 08:44", auto:false },
+  { name:"两省合并对账（7-9月）", creator:"张三", created:"2026-10-01", rows:20800, cols:45, result:false, opened:"2026-10-01 11:05", auto:false },
+  { name:"未命名3", creator:"张三", created:"2026-10-09", rows:200, cols:20, result:false, opened:"2026-10-09 10:05", auto:true },
+  { name:"未命名4", creator:"张三", created:"2026-10-09", rows:3520, cols:20, result:false, opened:"2026-10-09 10:22", auto:true }
+];
+
+const HELP_DOCS = {
+  start: { title:"快速上手", body:`
+    <h2>快速上手</h2>
+    <ol><li>点击「新建项目」，填写项目名与创建人，选择要导入的 xlsx / xls / csv 文件。</li>
+    <li>导入后在表格界面核对数据，可增删行列、复制粘贴、撤销重做。</li>
+    <li>点击「分析」，选择时间范围、分组维度与指标；需要标准口径时直接用「固定规则」。</li>
+    <li>在右侧结果区查看数字表格或图表，确认无误后导出。</li></ol>
+    <h4>说明</h4><p>所有计算与数据都保存在本机，不会上传到任何服务器。</p>` },
+  import: { title:"导入须知", body:`
+    <h2>导入须知</h2>
+    <ul><li>只读取第一个 Sheet；多 Sheet 文件会提示。</li>
+    <li>最大 200 列 × 100,000 行，超出部分自动截断并在界面顶部提示。</li>
+    <li>xls 格式上限 65,536 行，超出请另存为 xlsx。</li>
+    <li>公式、条件格式、颜色填充不会保留，请先在 Excel 中清洗为纯值。</li></ul>
+    <h4>字段识别</h4><p>导入后会自动匹配 44 个预定义字段。命中 ≥ 10 个时启用「固定规则」与五类分类导航。</p>` },
+  rules: { title:"固定规则口径", body:`
+    <h2>固定规则口径</h2>
+    <h4>网点货量分析</h4><p>货量 = sum(结算重量)，按「账单时间 / 寄件所属一级网点 / 目的所属省份 / 公斤段 / 物品来源 / 是否剔除」分组。</p>
+    <h4>网点单公斤价格分析</h4><p>单公斤价格 = sum(现价) ÷ sum(结算重量)，分组同上。</p>
+    <h4>网点折扣分析</h4><p>折扣 = sum(现价) ÷ sum(原价)。分母为 0 时留空，不输出 inf / NaN。</p>
+    <p class="tiny" style="margin-top:10px">缺字段时不会静默降级：会弹窗列出缺失字段，并允许继续自定义分析。</p>` },
+  ratio: { title:"占比说明", body:`
+    <h2>占比说明</h2>
+    <p>占比 = 分子维度聚合 ÷ 分母维度聚合，分母维度必须是指标维度的子集。</p>
+    <table class="table"><thead><tr><th>模式</th><th>分子</th><th>分母</th></tr></thead><tbody>
+      <tr><td>a</td><td>时间 + 网点</td><td>时间</td></tr>
+      <tr><td>b</td><td>时间 + 网点 + 省份</td><td>时间 + 网点</td></tr>
+      <tr><td>c</td><td>时间 + 网点 + 省份 + 公斤段</td><td>时间 + 网点 + 省份</td></tr>
+      <tr><td>d</td><td>时间 + 网点 + 公斤段</td><td>时间 + 网点</td></tr>
+    </tbody></table>
+    <p class="tiny" style="margin-top:10px">分母为 0 时该列留空；支持同时输出多列占比。</p>` },
+  keys: { title:"快捷键", body:`
+    <h2>快捷键</h2>
+    <table class="table"><thead><tr><th>快捷键</th><th>功能</th></tr></thead><tbody>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd></td><td>新建项目</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>K</kbd></td><td>分析数据</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>保存项目</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>F</kbd></td><td>查找单元格</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>撤销 / 重做</td></tr>
+    </tbody></table><p class="tiny" style="margin-top:10px">macOS 上 Ctrl 对应 ⌘。</p>` },
+  faq: { title:"常见问题", body:`
+    <h2>常见问题</h2>
+    <h4>导入后列名不是我期望的？</h4><p>第一行会被当作列名；空列名自动补为「列1、列2…」，重复列名追加 _2、_3。</p>
+    <h4>为什么「固定规则」是灰的？</h4><p>命中预定义字段不足 10 个。可继续使用自由分析。</p>
+    <h4>导出 xls 为什么被禁用？</h4><p>xls 上限 65,536 行 / 256 列，超限时禁用并提示改用 xlsx。</p>
+    <h4>数据会被上传吗？</h4><p>不会。后端是本机 sidecar，仅监听 127.0.0.1。</p>` }
+};
+
+/* ═══════════════════ 状态 ═══════════════════ */
+const state = {
+  page: "home",
+  project: null,
+  analysisDone: false,
+  tab: "table",
+  mergeStep: 1,
+  historyPage: 0,
+  selected: new Set(),
+  selectedProjects: new Set(),
+  theme: "light",
+  scale: 1
+};
+
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+/* ═══════════════════ 提示 ═══════════════════ */
+function toast(message) {
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.textContent = message;
+  $("#toasts").appendChild(el);
+  setTimeout(() => {
+    el.classList.add("out");
+    setTimeout(() => el.remove(), 200);
+  }, 2400);
+}
+
+/* ═══════════════════ 对话框 ═══════════════════ */
+function openDialog(title, bodyHtml, footHtml) {
+  $("#dialog-title").textContent = title;
+  $("#dialog-body").innerHTML = bodyHtml;
+  $("#dialog-foot").innerHTML = footHtml;
+  $("#dialog-scrim").hidden = false;
+}
+function closeDialog() { $("#dialog-scrim").hidden = true; }
+$("#dialog-scrim").addEventListener("click", (e) => { if (e.target.id === "dialog-scrim") closeDialog(); });
+
+const NEW_PROJECT_BODY = `
+  <div class="field"><label>项目名 *</label><input class="input" id="np-name" placeholder="例如：10月华东区网管账单" /></div>
+  <div class="field"><label>创建人 *</label><input class="input" id="np-creator" placeholder="例如：张三" /></div>
+  <div class="field"><label>文件路径 *</label>
+    <div class="row"><input class="input" id="np-path" placeholder="粘贴路径或浏览…" />
+      <button class="btn btn-secondary" id="np-browse">浏览</button></div>
+  </div>
+  <div class="tiny">支持 xlsx / xls / csv，最大 200 列 × 100,000 行</div>`;
+
+function openNewProject() {
+  openDialog("新建项目", NEW_PROJECT_BODY,
+    `<button class="btn btn-secondary" data-close>取消</button>
+     <button class="btn btn-primary" id="np-submit">确定</button>`);
+  $("#np-browse").addEventListener("click", () => {
+    $("#np-path").value = "C:\\Users\\13774\\Desktop\\10月账单.xlsx";
+    toast("已选择文件（演示）");
+  });
+  $("#np-submit").addEventListener("click", () => {
+    const name = $("#np-name").value.trim() || "10月华东区网管账单";
+    const creator = $("#np-creator").value.trim() || "张三";
+    if ($("#np-path").value.trim() === "") { toast("请选择要导入的文件"); return; }
+    openProject({ name, rows: DEMO_ROWS.length, cols: 20, creator });
+    closeDialog();
+    toast(`项目「${name}」已创建，共 ${DEMO_ROWS.length.toLocaleString()} 行`);
+  });
+  $$("[data-close]").forEach((b) => b.addEventListener("click", closeDialog));
+}
+
+/* ═══════════════════ 路由 ═══════════════════ */
+function setActiveNav() {
+  $$("#nav .item").forEach((btn) => {
+    let active = btn.dataset.page === state.page;
+    if (btn.id === "adv-btn") active = state.page === "board" || state.page === "regression";
+    btn.classList.toggle("active", active);
+  });
+  const settingsBtn = $('.footer-nav .item');
+  settingsBtn.classList.toggle("active", state.page === "settings");
+}
+
+function go(page) {
+  state.page = page;
+  $$(".view").forEach((view) => { view.hidden = true; view.classList.remove("enter"); });
+  const target = $("#view-" + page);
+  if (target) {
+    target.hidden = false;
+    void target.offsetWidth;
+    target.classList.add("enter");
+  }
+  setActiveNav();
+  closeFlyouts();
+  if (page === "projects") renderProjects();
+  if (page === "history") renderHistory();
+  if (page === "help") renderDoc("start");
+  if (page === "regression") renderRegression();
+  if (page === "board") renderBoard();
+  if (page === "analysis") renderAnalysisConfig();
+}
+
+function openProject(project) {
+  state.project = project;
+  state.analysisDone = false;
+  $("#current-card").hidden = false;
+  $("#cp-name").textContent = project.name;
+  $("#cp-meta").textContent = `${project.rows.toLocaleString()} 行 · ${project.cols} 列`;
+  $("#ws-title").textContent = project.name;
+  $("#ws-meta").textContent = `${project.rows.toLocaleString()} 行 × ${project.cols} 列 · 预定义字段 41 / 44 · 10月账单.xlsx`;
+  $("#analysis-sub").textContent = `${project.name} · 固定规则：网点货量分析`;
+  $("#home-resume").hidden = false;
+  const homeNew = $("#home-new");
+  homeNew.className = "btn btn-secondary btn-lg";
+  go("workspace");
+  renderGrid();
+}
+
+/* ═══════════════════ 侧边栏折叠 / 浮层 ═══════════════════ */
+$("#handle").addEventListener("click", () => {
+  const collapsed = $("#shell").classList.toggle("collapsed");
+  $("#handle").title = collapsed ? "展开侧边栏" : "收起侧边栏";
+});
+
+function closeFlyouts() {
+  $$(".flyout").forEach((el) => { el.hidden = true; });
+}
+
+$("#file-menu-btn").addEventListener("click", (e) => {
+  e.stopPropagation();
+  const existing = $("#file-menu");
+  const wasOpen = existing !== null && !existing.hidden;
+  closeFlyouts();
+  if (wasOpen) return;
+  if (existing) existing.remove();
+  const wrap = $("#file-menu-btn").parentElement;
+  const menu = document.createElement("div");
+  menu.className = "flyout";
+  menu.id = "file-menu";
+  menu.innerHTML = `
+    <button data-act="new">新建项目…</button>
+    <button data-act="import">导入表格…</button>
+    <div class="sep"></div>
+    <button data-act="save" ${state.project ? "" : "disabled"}>保存<kbd>Ctrl+S</kbd></button>
+    <button data-act="export" ${state.analysisDone ? "" : "disabled"}>导出结果…</button>`;
+  wrap.appendChild(menu);
+  menu.addEventListener("click", (ev) => {
+    const act = ev.target.closest("button")?.dataset.act;
+    if (!act) return;
+    closeFlyouts();
+    if (act === "new") openNewProject();
+    if (act === "import") {
+      const seq = PROJECTS.filter((p) => /^未命名\d+$/.test(p.name))
+        .map((p) => Number(p.name.replace("未命名", "")))
+        .filter((n) => Number.isFinite(n));
+      const name = `未命名${(seq.length ? Math.max(...seq) : 0) + 1}`;
+      PROJECTS.push({
+        name,
+        creator: PROJECTS[0]?.creator ?? "张三",
+        created: "2026-10-09",
+        rows: DEMO_ROWS.length,
+        cols: 20,
+        result: false,
+        opened: "2026-10-09 12:10",
+        auto: true
+      });
+      openProject({ name, rows: DEMO_ROWS.length, cols: 20, creator: "张三" });
+      toast(`已导入并自动保存为项目「${name}」`);
+    }
+    if (act === "save") saveProject();
+    if (act === "export") go("analysis");
+  });
+});
+
+document.addEventListener("click", (e) => {
+  if (e.target.closest(".flyout")) return;
+  if (e.target.closest("#file-menu-btn") || e.target.closest("#export-btn")) return;
+  closeFlyouts();
+  hideCtx();
+  hidePopoverMenus();
+});
+
+/* 通用浮层（导出 / 固定规则内点击） */
+function hidePopoverMenus() {
+  $$(".ctx").forEach((el) => el.remove());
+}
+
+$("#export-btn").addEventListener("click", (e) => {
+  e.stopPropagation();
+  const menu = $("#export-menu");
+  const willOpen = menu.hidden;
+  closeFlyouts();
+  menu.hidden = !willOpen;
+});
+
+document.addEventListener("click", (e) => {
+  const exp = e.target.closest("[data-export]");
+  if (exp) {
+    const kind = exp.dataset.export;
+    closeFlyouts();
+    if (kind === "nop") { toast("演示：导出图表文件"); return; }
+    if (kind === "xls" && state.project && state.project.rows > 65536) { toast("xls 超 65,536 行，已禁用"); return; }
+    const res = analysisState.result;
+    const cols = res ? res.columnFields.length + res.labels.length + res.derivedLabels.length : 0;
+    toast(`演示：已导出 ${kind.toUpperCase()}（${cols} 列，不含行数提示）到桌面`);
+  }
+  const rule = e.target.closest("[data-rule]");
+  if (rule) {
+    closeFlyouts();
+    toast(`已应用固定规则「${rule.dataset.rule}」，进入分析页`);
+    go("analysis");
+  }
+  const op = e.target.closest("[data-op]");
+  if (op) {
+    handleToolOp(op.dataset.op);
+    return;
+  }
+  const addBtn = e.target.closest("[data-add]");
+  if (addBtn) toast("演示：新增一行配置");
+  const toastBtn = e.target.closest("[data-toast]");
+  if (toastBtn) toast(toastBtn.dataset.toast);
+
+  const analyzeProject = e.target.closest("[data-analyze]");
+  if (analyzeProject) {
+    e.stopPropagation();
+    const project = PROJECTS[Number(analyzeProject.dataset.analyze)];
+    if (project) {
+      openProject(project);
+      go("analysis");
+      renderAnalysisConfig();
+      toast(`已载入「${project.name}」上次的分析配置与结果`);
+    }
+    return;
+  }
+  const analyzeHistory = e.target.closest("[data-analyze-history]");
+  if (analyzeHistory) {
+    e.stopPropagation();
+    const project = PROJECTS.find((p) => p.name === analyzeHistory.dataset.analyzeHistory);
+    if (project) {
+      openProject(project);
+      go("analysis");
+      renderAnalysisConfig();
+      toast(`已载入「${project.name}」上次的分析配置与结果`);
+    }
+    return;
+  }
+  const closeBtn = e.target.closest("[data-close]");
+  if (closeBtn) closeDialog();
+});
+
+/* ═══════════════════ 工作区 ═══════════════════ */
+function markDirty() {
+  $("#dirty-dot").classList.add("dirty");
+  $("#save-label").textContent = "未保存";
+}
+function saveProject() {
+  $("#dirty-dot").classList.remove("dirty");
+  $("#save-label").textContent = "已保存";
+  toast("已保存");
+}
+$("#ws-save").addEventListener("click", saveProject);
+
+/* 选择模型：单元格 / 整行 / 整列（不做矩形框选，受 AG Grid Community 限制） */
+const sel = { mode: "none", cell: null, rows: new Set(), cols: new Set() };
+const undoState = {
+  stack: [
+    { label: "删除选中行（2 行）" },
+    { label: "粘贴 12 个单元格" },
+    { label: "编辑 C4" },
+    { label: "插入 1 行" }
+  ],
+  idx: 4
+};
+
+function colLetter(index) {
+  let n = index;
+  let out = "";
+  do {
+    out = String.fromCharCode(65 + (n % 26)) + out;
+    n = Math.floor(n / 26) - 1;
+  } while (n >= 0);
+  return out;
+}
+
+function renderGrid() {
+  const table = $("#grid");
+  const head = `<thead><tr>
+      <th class="row-no-head"></th>
+      ${GRID_META.map((meta, i) => `<th class="col-head" data-col="${i}">${colLetter(i)} ${meta.name}</th>`).join("")}
+    </tr></thead>`;
+  const body = DEMO_ROWS.map(
+    (row, r) => `
+    <tr data-row="${r}">
+      <td class="row-no" data-r="${r}">${r + 1}</td>
+      ${GRID_META.map(
+        (meta, c) =>
+          `<td data-r="${r}" data-c="${c}" class="${meta.type === "number" ? "num" : ""}">${row[meta.name]}</td>`
+      ).join("")}
+    </tr>`
+  ).join("");
+  table.innerHTML = head + `<tbody>${body}</tbody>`;
+  $("#sb-rows").textContent = "共 200 行 × 20 列（演示数据）";
+  sel.mode = "none";
+  sel.cell = null;
+  sel.rows.clear();
+  sel.cols.clear();
+  bindGridEvents();
+  applySelection();
+  updateStatus();
+  renderUndoState();
+  applyQuickFilter();
+}
+
+function bindGridEvents() {
+  const grid = $("#grid");
+  if (grid.dataset.bound === "1") return;
+  grid.dataset.bound = "1";
+  grid.addEventListener("click", onGridClick);
+  grid.addEventListener("contextmenu", onGridContext);
+}
+
+function onGridClick(event) {
+  const head = event.target.closest("th.col-head");
+  if (head) {
+    const c = Number(head.dataset.col);
+    if (event.ctrlKey || event.metaKey || event.shiftKey) {
+      if (sel.cols.has(c)) sel.cols.delete(c);
+      else sel.cols.add(c);
+    } else {
+      sel.cols = new Set([c]);
+    }
+    sel.mode = "col";
+    sel.rows.clear();
+    sel.cell = null;
+    applySelection();
+    updateStatus();
+    return;
+  }
+  const rowNo = event.target.closest("td.row-no");
+  if (rowNo) {
+    const r = Number(rowNo.dataset.r);
+    if (event.ctrlKey || event.metaKey || event.shiftKey) {
+      if (sel.rows.has(r)) sel.rows.delete(r);
+      else sel.rows.add(r);
+    } else {
+      sel.rows = new Set([r]);
+    }
+    sel.mode = "row";
+    sel.cols.clear();
+    sel.cell = null;
+    applySelection();
+    updateStatus();
+    return;
+  }
+  const cell = event.target.closest("td[data-c]");
+  if (cell) {
+    sel.mode = "cell";
+    sel.cell = { r: Number(cell.dataset.r), c: Number(cell.dataset.c) };
+    sel.rows.clear();
+    sel.cols.clear();
+    applySelection();
+    updateStatus();
+  }
+}
+
+function applySelection() {
+  const table = $("#grid");
+  table.querySelectorAll(".sel-cell, .sel-row, .col-sel").forEach((el) => {
+    el.classList.remove("sel-cell", "sel-row", "col-sel");
+  });
+  if (sel.mode === "cell" && sel.cell) {
+    const td = table.querySelector(`td[data-r="${sel.cell.r}"][data-c="${sel.cell.c}"]`);
+    if (td) td.classList.add("sel-cell");
+  }
+  if (sel.mode === "row") {
+    sel.rows.forEach((r) => {
+      const tr = table.querySelector(`tr[data-row="${r}"]`);
+      if (tr) tr.classList.add("sel-row");
+    });
+  }
+  if (sel.mode === "col") {
+    sel.cols.forEach((c) => {
+      table
+        .querySelectorAll(`td[data-c="${c}"], th.col-head[data-col="${c}"]`)
+        .forEach((el) => el.classList.add("col-sel"));
+    });
+  }
+}
+
+function updateStatus() {
+  const sbSel = $("#sb-selected");
+  const sbSum = $("#sb-sum");
+  if (sel.mode === "cell" && sel.cell) {
+    const meta = GRID_META[sel.cell.c];
+    const value = DEMO_ROWS[sel.cell.r][meta.name];
+    sbSel.textContent = `${colLetter(sel.cell.c)}${sel.cell.r + 1} · ${meta.name}`;
+    sbSum.textContent =
+      meta.type === "number" ? `值 ${value} · 数值列` : `值 ${value} · 文本列`;
+    return;
+  }
+  if (sel.mode === "row" && sel.rows.size > 0) {
+    const nums = [];
+    sel.rows.forEach((r) => {
+      GRID_META.forEach((meta) => {
+        if (meta.type === "number") nums.push(Number(DEMO_ROWS[r][meta.name]));
+      });
+    });
+    const sum = nums.reduce((a, b) => a + b, 0);
+    sbSel.textContent = `已选 ${sel.rows.size} 行`;
+    sbSum.textContent = `数值求和 ${sum.toFixed(2)} · 平均 ${(sum / nums.length).toFixed(2)}`;
+    return;
+  }
+  if (sel.mode === "col" && sel.cols.size > 0) {
+    const cols = [...sel.cols];
+    const names = cols.map((c) => GRID_META[c].name);
+    sbSel.textContent = `已选 ${cols.length} 列：${names.join("、")}`;
+    const numeric = cols.every((c) => GRID_META[c].type === "number");
+    if (numeric) {
+      const vals = cols.flatMap((c) => DEMO_ROWS.map((row) => Number(row[GRID_META[c].name])));
+      const sum = vals.reduce((a, b) => a + b, 0);
+      sbSum.textContent = `求和 ${sum.toFixed(2)} · 平均 ${(sum / vals.length).toFixed(2)}`;
+    } else {
+      sbSum.textContent = "文本列不做数值汇总";
+    }
+    return;
+  }
+  sbSel.textContent = "未选择";
+  sbSum.textContent = "点单元格 / 行号 / 列头均可选中，再右键";
+}
+
+function onGridContext(event) {
+  const head = event.target.closest("th.col-head");
+  const rowNo = event.target.closest("td.row-no");
+  const cell = event.target.closest("td[data-c]");
+  if (head) {
+    const c = Number(head.dataset.col);
+    if (sel.mode !== "col" || !sel.cols.has(c)) {
+      sel.mode = "col";
+      sel.cols = new Set([c]);
+      sel.rows.clear();
+      sel.cell = null;
+      applySelection();
+      updateStatus();
+    }
+    event.preventDefault();
+    showCtx(event.clientX, event.clientY, "col");
+    return;
+  }
+  if (rowNo) {
+    const r = Number(rowNo.dataset.r);
+    if (sel.mode !== "row" || !sel.rows.has(r)) {
+      sel.mode = "row";
+      sel.rows = new Set([r]);
+      sel.cols.clear();
+      sel.cell = null;
+      applySelection();
+      updateStatus();
+    }
+    event.preventDefault();
+    showCtx(event.clientX, event.clientY, "row");
+    return;
+  }
+  if (cell) {
+    sel.mode = "cell";
+    sel.cell = { r: Number(cell.dataset.r), c: Number(cell.dataset.c) };
+    sel.rows.clear();
+    sel.cols.clear();
+    applySelection();
+    updateStatus();
+    event.preventDefault();
+    showCtx(event.clientX, event.clientY, "cell");
+  }
+}
+
+function showCtx(x, y, mode) {
+  hidePopoverMenus();
+  const menu = document.createElement("div");
+  menu.className = "ctx";
+  menu.style.left = Math.min(x, window.innerWidth - 220) + "px";
+  menu.style.top = Math.min(y, window.innerHeight - 320) + "px";
+
+  const clip = `<button data-ctx="clip">剪切<kbd>Ctrl+X</kbd></button>
+    <button data-ctx="clip">复制<kbd>Ctrl+C</kbd></button>
+    <button data-ctx="clip">粘贴<kbd>Ctrl+V</kbd></button>`;
+  const colName = sel.mode === "col" && sel.cols.size > 0 ? GRID_META[[...sel.cols][0]].name : "";
+  const cellName = sel.cell ? GRID_META[sel.cell.c].name : "";
+
+  if (mode === "col") {
+    menu.innerHTML = `${clip}<div class="sep"></div>
+      <button data-ctx="insert_cols">在左侧插入列</button>
+      <button data-ctx="insert_cols">在右侧插入列</button>
+      <button data-ctx="delete_cols">删除选中列</button>
+      <div class="sep"></div>
+      <button data-ctx="analyze_col">以此列分析「${colName}」</button>`;
+  } else if (mode === "row") {
+    menu.innerHTML = `${clip}<div class="sep"></div>
+      <button data-ctx="insert_rows">在上方插入行</button>
+      <button data-ctx="insert_rows">在下方插入行</button>
+      <button data-ctx="delete_rows">删除选中行</button>
+      <div class="sep"></div>
+      <button data-ctx="analyze_col">分析所选数据</button>`;
+  } else {
+    menu.innerHTML = `${clip}<div class="sep"></div>
+      <button data-ctx="insert_rows">在上方插入行</button>
+      <button data-ctx="insert_cols">在左侧插入列</button>
+      <button data-ctx="delete_rows">删除此行</button>
+      <div class="sep"></div>
+      <button data-ctx="analyze_col">以此列分析「${cellName}」</button>`;
+  }
+
+  document.body.appendChild(menu);
+  menu.addEventListener("click", (ev) => {
+    const btn = ev.target.closest("button");
+    if (!btn) return;
+    const key = btn.dataset.ctx;
+    const label = (btn.childNodes[0]?.textContent ?? "").trim();
+    hideCtx();
+    if (key === "analyze_col") {
+      analyzeColumn();
+      return;
+    }
+    if (key === "clip") {
+      toast(`${label}（演示）`);
+      return;
+    }
+    pushUndo(label);
+    markDirty();
+    toast(`${label}（演示）`);
+  });
+}
+
+function hideCtx() {
+  $$(".ctx").forEach((el) => el.remove());
+  $$(".undo-menu").forEach((el) => el.remove());
+  $$(".picker").forEach((el) => el.remove());
+  $$(".net-picker").forEach((el) => el.remove());
+}
+
+function analyzeColumn() {
+  const colIndexes =
+    sel.mode === "col" && sel.cols.size > 0
+      ? [...sel.cols].sort((a, b) => a - b)
+      : sel.cell
+        ? [sel.cell.c]
+        : [];
+  if (colIndexes.length === 0) {
+    toast("请先在表格里选中列（可多选）或一个单元格");
+    return;
+  }
+  const metas = colIndexes.map((index) => GRID_META[index]);
+  const textFields = metas.filter((meta) => meta.type !== "number");
+  const numberFields = metas.filter((meta) => meta.type === "number");
+
+  analysisState.filters = textFields.map((meta) => ({
+    field: meta.name,
+    op: "eq",
+    values: [],
+    value: "",
+    value2: ""
+  }));
+  analysisState.metrics = numberFields.map((meta, index) => ({
+    field: meta.name,
+    agg: "sum",
+    op: index === numberFields.length - 1 ? "" : "AND"
+  }));
+  if (analysisState.metrics.length === 0) {
+    analysisState.metrics = [{ field: "现价", agg: "sum", op: "" }];
+  }
+  normalizeMetricOps();
+  analysisState.result = null;
+  state.analysisDone = false;
+  go("analysis");
+  renderAnalysisConfig();
+  toast(
+    `已带入 ${textFields.length} 个分组字段、${numberFields.length} 个指标${
+      numberFields.length > 1 ? "（多指标默认用 AND 连接）" : ""
+    }`
+  );
+}
+
+/* 撤销 / 重做：带步骤下拉 */
+function pushUndo(label) {
+  undoState.stack = undoState.stack.slice(0, undoState.idx);
+  undoState.stack.push({ label });
+  undoState.idx = undoState.stack.length;
+  renderUndoState();
+}
+
+function renderUndoState() {
+  $("#undo-btn").disabled = undoState.idx === 0;
+  $("#redo-btn").disabled = undoState.idx >= undoState.stack.length;
+}
+
+function openUndoMenu(anchor) {
+  hideCtx();
+  const menu = document.createElement("div");
+  menu.className = "undo-menu";
+  const applied = undoState.stack.slice(0, undoState.idx);
+  const pending = undoState.stack.slice(undoState.idx);
+  menu.innerHTML = `
+    ${applied.length > 0 ? `<div class="cap">已执行（点一下回退到此前）</div>` : ""}
+    ${applied
+      .map((item, i) => ({ item, i }))
+      .reverse()
+      .map(
+        ({ item, i }) =>
+          `<button class="item" data-jump="${i}"><span class="mark">✓</span>${item.label}</button>`
+      )
+      .join("")}
+    ${pending.length > 0 ? `<div class="sep"></div><div class="cap">可重做</div>` : ""}
+    ${pending
+      .map(
+        (item, i) =>
+          `<button class="item pending" data-jump="${undoState.idx + i}"><span class="mark"></span>${item.label}</button>`
+      )
+      .join("")}
+    ${undoState.stack.length === 0 ? `<div class="cap">暂无操作记录</div>` : ""}`;
+  const rect = anchor.getBoundingClientRect();
+  menu.style.position = "fixed";
+  menu.style.left = Math.max(8, rect.left - 60) + "px";
+  menu.style.top = rect.bottom + 4 + "px";
+  document.body.appendChild(menu);
+  menu.addEventListener("click", (ev) => {
+    const btn = ev.target.closest("[data-jump]");
+    if (!btn) return;
+    const target = Number(btn.dataset.jump);
+    const isPending = btn.classList.contains("pending");
+    undoState.idx = isPending ? target + 1 : target;
+    hideCtx();
+    renderUndoState();
+    toast(`已回到第 ${undoState.idx} 步`);
+  });
+}
+
+$$("[data-uimenu]").forEach((btn) =>
+  btn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    openUndoMenu(btn);
+  })
+);
+
+function handleToolOp(op) {
+  const labels = {
+    undo: "撤销",
+    redo: "重做",
+    reset: "重置到导入时状态",
+    insert_rows: "插入行",
+    insert_cols: "插入列",
+    delete_rows: "删除选中行",
+    delete_cols: "删除选中列"
+  };
+  if (op === "undo") {
+    if (undoState.idx === 0) return toast("没有可撤销的操作");
+    undoState.idx -= 1;
+    renderUndoState();
+    return toast("已撤销 1 步");
+  }
+  if (op === "redo") {
+    if (undoState.idx >= undoState.stack.length) return toast("没有可重做的操作");
+    undoState.idx += 1;
+    renderUndoState();
+    return toast("已重做 1 步");
+  }
+  pushUndo(labels[op] ?? op);
+  markDirty();
+  toast(`${labels[op] ?? op}（演示）`);
+}
+
+function applyQuickFilter() {
+  const q = ($("#quick-filter").value || "").trim();
+  $$("#grid tbody tr").forEach((tr) => {
+    tr.hidden = q !== "" && !tr.textContent.includes(q);
+  });
+}
+
+$("#quick-filter").addEventListener("input", applyQuickFilter);
+
+$("#ws-analyze").addEventListener("click", analyzeColumn);
+
+
+/* ═══════════════════ 分析页：条件即维度（可真实计算） ═══════════════════ */
+const TEXT_OPS = [
+  { v: "eq", label: "等于" }, { v: "ne", label: "不等于" },
+  { v: "startsWith", label: "开头是" }, { v: "endsWith", label: "结尾是" },
+  { v: "contains", label: "包含" }, { v: "notContains", label: "不包含" }
+];
+const NUM_OPS = [
+  { v: "eq", label: "等于" }, { v: "ne", label: "不等于" },
+  { v: "gt", label: "大于" }, { v: "ge", label: "大于或等于" },
+  { v: "lt", label: "小于" }, { v: "le", label: "小于或等于" },
+  { v: "between", label: "介于" },
+  { v: "aboveAvg", label: "高于平均值" }, { v: "belowAvg", label: "低于平均值" }
+];
+const AGGS = [
+  { v: "sum", label: "求和", short: "合计" },
+  { v: "avg", label: "求平均值", short: "均值" },
+  { v: "median", label: "求中位数", short: "中位" },
+  { v: "max", label: "求最大值", short: "最大" },
+  { v: "min", label: "求最小值", short: "最小" },
+  { v: "count", label: "计数", short: "计数" }
+];
+const CONNECTORS = ["AND", "+", "−", "×", "÷"];
+const NO_VALUE_OPS = new Set(["aboveAvg", "belowAvg"]);
+const ALL = "*";
+
+const analysisState = {
+  range: "本月",
+  from: "2026-10-01",
+  to: "2026-10-31",
+  filters: [
+    { field: "寄件所属一级网点", op: "eq", values: [], value: "", value2: "" },
+    { field: "公斤段", op: "eq", values: ["150-300"], value: "", value2: "" }
+  ],
+  metrics: [
+    { field: "现价", agg: "sum", op: "÷" },
+    { field: "原价", agg: "sum", op: "" }
+  ],
+  chartType: "line",
+  chartTitle: "",
+  legendNames: {},
+  chartX: null,
+  chartXValues: [],
+  chartY: [],
+  result: null,
+  tab: "table"
+};
+
+const fieldMeta = (name) => GRID_META.find((m) => m.name === name) ?? { name, type: "text" };
+const opsFor = (name) => (fieldMeta(name).type === "number" ? NUM_OPS : TEXT_OPS);
+const isTextField = (name) => fieldMeta(name).type !== "number";
+const aggMeta = (v) => AGGS.find((a) => a.v === v) ?? AGGS[0];
+const metricLabel = (metric) => `${metric.field}${aggMeta(metric.agg).short}`;
+const isDim = (filter) =>
+  isTextField(filter.field) && (filter.op === "eq" || filter.op === "ne");
+const fmtNum = (v) =>
+  Number.isFinite(v) ? v.toLocaleString(undefined, { maximumFractionDigits: 3 }) : "—";
+
+function rangedRows() {
+  return DEMO_ROWS.filter((row) => {
+    const t = String(row["账单时间"]);
+    return t >= analysisState.from && t <= analysisState.to;
+  });
+}
+function distinctValues(name) {
+  const set = new Set();
+  rangedRows().forEach((row) => {
+    const value = row[name];
+    if (value !== "" && value !== null && value !== undefined) set.add(String(value));
+  });
+  return [...set].sort((a, b) => a.localeCompare(b, "zh"));
+}
+function fieldHasData(name) {
+  return rangedRows().some((row) => {
+    const value = row[name];
+    return value !== "" && value !== null && value !== undefined;
+  });
+}
+
+function renderAnalysisConfig() {
+  renderFilterRows();
+  renderMetricRows();
+  renderDerived();
+  $$("#a-range button").forEach((b) => b.classList.toggle("on", b.dataset.v === analysisState.range));
+  const custom = analysisState.range === "自定义";
+  $("#a-from").value = analysisState.from;
+  $("#a-to").value = analysisState.to;
+  $("#a-from").disabled = !custom;
+  $("#a-to").disabled = !custom;
+}
+
+function valueCellHtml(filter, index) {
+  if (NO_VALUE_OPS.has(filter.op)) return `<div class="no-value">无需填值</div>`;
+  if (filter.op === "between") {
+    const a = filter.value === ALL ? "" : filter.value;
+    return `<div class="two-input"><input class="input" data-fv="${index}" value="${a}" placeholder="下限" /><span class="tiny">~</span><input class="input" data-fv2="${index}" value="${filter.value2}" placeholder="上限" /></div>`;
+  }
+  if (isTextField(filter.field) && (filter.op === "eq" || filter.op === "ne")) {
+    const picked = filter.values ?? [];
+    const label = picked.length === 0 ? "全部（按此字段展开）" : `已选 ${picked.length} 项`;
+    return `<button class="input" data-fvpick="${index}" style="text-align:left">${label}</button>`;
+  }
+  const value = filter.value === ALL ? "" : filter.value;
+  return `<input class="input" data-fv="${index}" value="${value}" placeholder="${
+    isTextField(filter.field) ? "文本" : "数值"
+  }" />`;
+}
+
+function renderFilterRows() {
+  const host = $("#a-filters");
+  if (analysisState.filters.length === 0) {
+    host.innerHTML = `<div class="no-value">没有条件：结果只有一行全表合计</div>`;
+    return;
+  }
+  host.innerHTML = analysisState.filters
+    .map(
+      (filter, index) => `
+      <div class="filter-row">
+        <div class="order">
+          <button data-move="filter:${index}:-1" title="上移" ${index === 0 ? "disabled" : ""}>▲</button>
+          <button data-move="filter:${index}:1" title="下移" ${
+            index === analysisState.filters.length - 1 ? "disabled" : ""
+          }>▼</button>
+        </div>
+        <button class="input" data-pick-field="${index}" style="text-align:left">${filter.field}</button>
+        <select class="input" data-fop="${index}">
+          ${opsFor(filter.field).map((op) => `<option value="${op.v}" ${op.v === filter.op ? "selected" : ""}>${op.label}</option>`).join("")}
+        </select>
+        ${valueCellHtml(filter, index)}
+        <button class="btn btn-ghost btn-icon" data-rm-filter="${index}" title="删除条件">✕</button>
+      </div>`
+    )
+    .join("");
+}
+
+function renderMetricRows() {
+  const host = $("#a-metrics");
+  host.innerHTML = analysisState.metrics
+    .map(
+      (metric, index) => `
+      ${index > 0
+        ? `<div class="op-chip"><select class="input op-select" style="width:58px" data-mop="${index - 1}">
+             ${CONNECTORS.map((op) => `<option ${analysisState.metrics[index - 1].op === op ? "selected" : ""}>${op}</option>`).join("")}
+           </select></div>`
+        : ""}
+      <div class="metric-row2">
+        <div class="order">
+          <button data-move="metric:${index}:-1" title="上移" ${index === 0 ? "disabled" : ""}>▲</button>
+          <button data-move="metric:${index}:1" title="下移" ${
+            index === analysisState.metrics.length - 1 ? "disabled" : ""
+          }>▼</button>
+        </div>
+        <button class="input" data-pick-metric="${index}" style="text-align:left">${metric.field}</button>
+        <select class="input" data-magg="${index}">
+          ${AGGS.map((agg) => `<option value="${agg.v}" ${agg.v === metric.agg ? "selected" : ""}>${agg.label}</option>`).join("")}
+        </select>
+        <button class="btn btn-ghost btn-icon" data-rm-metric="${index}" title="删除指标">✕</button>
+      </div>`
+    )
+    .join("");
+}
+
+function chainsOf() {
+  const chains = [];
+  if (analysisState.metrics.length === 0) return chains;
+  let current = [0];
+  for (let i = 1; i < analysisState.metrics.length; i += 1) {
+    if ((analysisState.metrics[i - 1].op || "") === "AND") {
+      chains.push(current);
+      current = [i];
+    } else {
+      current.push(i);
+    }
+  }
+  chains.push(current);
+  return chains;
+}
+function derivedLabels() {
+  const chains = chainsOf().filter((chain) => chain.length > 1);
+  if (chains.length === 0) return [];
+  return chains.length === 1 ? ["计算结果"] : chains.map((_, i) => `计算结果${i + 1}`);
+}
+
+function renderDerived() {
+  const columns = [
+    ...analysisState.filters.filter((f) => isDim(f)).map((f) => f.field),
+    ...analysisState.metrics.map(metricLabel),
+    ...derivedLabels()
+  ];
+  $("#a-derived").innerHTML =
+    analysisState.metrics.length === 0
+      ? "还没有指标：至少添加一个"
+      : `结果表列：<b>${columns.join(" | ")}</b><br />` +
+        (analysisState.metrics.length > 1
+          ? "需计算多个指标时请用 AND 连接；指标内的计算规则请用 ＋ － × ÷ 连接"
+          : "");
+}
+
+function derivedFormula() {
+  const chains = chainsOf().filter((chain) => chain.length > 1);
+  if (chains.length === 0) return "";
+  return chains
+    .map((chain, index) => {
+      const label = chains.length === 1 ? "计算结果" : `计算结果${index + 1}`;
+      const expression = chain
+        .map((metricIndex, position) => {
+          const op = position === 0 ? "" : ` ${analysisState.metrics[chain[position - 1]].op} `;
+          return `${op}${metricLabel(analysisState.metrics[metricIndex])}`;
+        })
+        .join("");
+      return `${label} = ${expression}`;
+    })
+    .join("；");
+}
+
+/* ── 字段选择器：按时间范围灰掉无数据字段 ── */
+function openFieldPicker(anchor, onPick, type = "any") {
+  hideCtx();
+  const items = GRID_META.filter((meta) => type === "any" || meta.type === type);
+  const pop = document.createElement("div");
+  pop.className = "picker";
+  pop.innerHTML = `
+    <input class="input" type="text" placeholder="搜索字段…" />
+    <div class="picker-list">
+      ${items
+        .map((meta) => {
+          const available = fieldHasData(meta.name);
+          return `<label class="picker-item ${available ? "" : "disabled"}" data-field="${meta.name}"
+              data-available="${available ? "1" : "0"}">
+            <input type="checkbox" value="${meta.name}" ${available ? "" : "disabled"} />
+            <span>${meta.name}</span>
+            <span class="dtype">${meta.type === "number" ? "数值" : "文本"}${
+              available ? "" : " · 无数据"
+            }</span></label>`;
+        })
+        .join("")}
+    </div>
+    <div class="picker-foot">
+      <button class="btn btn-ghost" data-pick-all>全选</button>
+      <span class="tiny" data-pick-count>0 项</span>
+      <span style="flex:1"></span>
+      <button class="btn btn-primary" data-pick-ok>添加</button>
+    </div>`;
+  const rect = anchor.getBoundingClientRect();
+  pop.style.left = Math.min(rect.left, window.innerWidth - 300) + "px";
+  pop.style.top = Math.min(rect.bottom + 4, window.innerHeight - 350) + "px";
+  document.body.appendChild(pop);
+
+  const search = pop.querySelector('input[type="text"]');
+  const boxes = () => Array.from(pop.querySelectorAll('input[type="checkbox"]'));
+  const order = [];
+  const syncCount = () => {
+    pop.querySelector("[data-pick-count]").textContent = `${boxes().filter((b) => b.checked).length} 项`;
+  };
+  const trackOrder = (box) => {
+    const value = box.value;
+    if (box.checked) {
+      if (!order.includes(value)) order.push(value);
+    } else {
+      const index = order.indexOf(value);
+      if (index >= 0) order.splice(index, 1);
+    }
+  };
+  search.addEventListener("input", () => {
+    const q = search.value.trim();
+    Array.from(pop.querySelectorAll(".picker-item")).forEach((el) => {
+      el.hidden = q !== "" && !el.textContent.includes(q);
+    });
+  });
+  boxes().forEach((box) =>
+    box.addEventListener("change", () => {
+      trackOrder(box);
+      syncCount();
+    })
+  );
+
+  pop.addEventListener("click", (event) => {
+    const disabled = event.target.closest('.picker-item[data-available="0"]');
+    if (disabled) {
+      toast(
+        `「${disabled.dataset.field}」在 ${analysisState.from} ~ ${analysisState.to} 内没有数据，请调整时间范围`
+      );
+      event.stopPropagation();
+      return;
+    }
+    event.stopPropagation();
+  });
+
+  pop.querySelector("[data-pick-all]").addEventListener("click", () => {
+    const visible = Array.from(pop.querySelectorAll(".picker-item")).filter(
+      (el) => !el.hidden && el.dataset.available === "1"
+    );
+    const allChecked = visible.every((el) => el.querySelector("input").checked);
+    visible.forEach((el) => {
+      const box = el.querySelector("input");
+      box.checked = !allChecked;
+      trackOrder(box);
+    });
+    syncCount();
+  });
+  pop.querySelector("[data-pick-ok]").addEventListener("click", () => {
+    // 按用户勾选顺序返回；兜底把漏登记的一并带上
+    const checked = boxes().filter((box) => box.checked).map((box) => box.value);
+    const picked = [
+      ...order.filter((value) => checked.includes(value)),
+      ...checked.filter((value) => !order.includes(value))
+    ];
+    pop.remove();
+    if (picked.length === 0) {
+      toast("请先勾选字段");
+      return;
+    }
+    onPick(picked);
+  });
+}
+
+/* 取值多选器：与字段选择器同款（搜索 / 全选 / 清空） */
+function openValuePicker(anchor, index) {
+  hideCtx();
+  const filter = analysisState.filters[index];
+  const values = distinctValues(filter.field);
+  const current = new Set(filter.values ?? []);
+  const pop = document.createElement("div");
+  pop.className = "picker";
+  pop.innerHTML = `
+    <div class="tiny" style="padding:2px 4px 6px">${filter.field} · 可多选</div>
+    <input class="input" type="text" placeholder="搜索取值…" />
+    <div class="picker-list">
+      ${values
+        .map(
+          (value) =>
+            `<label class="picker-item"><input type="checkbox" value="${value}" ${
+              current.has(value) ? "checked" : ""
+            } /><span>${value}</span></label>`
+        )
+        .join("")}
+    </div>
+    <div class="picker-foot">
+      <button class="btn btn-ghost" data-vall>全选</button>
+      <button class="btn btn-ghost" data-vnone>清空</button>
+      <span class="tiny" data-vcount>${current.size} 项</span>
+      <span style="flex:1"></span>
+      <button class="btn btn-primary" data-vok>确定</button>
+    </div>`;
+  const rect = anchor.getBoundingClientRect();
+  pop.style.left = Math.min(rect.left, window.innerWidth - 300) + "px";
+  pop.style.top = Math.min(rect.bottom + 4, window.innerHeight - 340) + "px";
+  document.body.appendChild(pop);
+
+  const boxes = () => Array.from(pop.querySelectorAll('input[type="checkbox"]'));
+  const sync = () => {
+    pop.querySelector("[data-vcount]").textContent = `${boxes().filter((b) => b.checked).length} 项`;
+  };
+  const search = pop.querySelector('input[type="text"]');
+  search.addEventListener("input", () => {
+    const q = search.value.trim();
+    Array.from(pop.querySelectorAll(".picker-item")).forEach((el) => {
+      el.hidden = q !== "" && !el.textContent.includes(q);
+    });
+  });
+  boxes().forEach((box) => box.addEventListener("change", sync));
+  pop.querySelector("[data-vall]").addEventListener("click", () => {
+    boxes().forEach((box) => {
+      box.checked = true;
+    });
+    sync();
+  });
+  pop.querySelector("[data-vnone]").addEventListener("click", () => {
+    boxes().forEach((box) => {
+      box.checked = false;
+    });
+    sync();
+  });
+  pop.querySelector("[data-vok]").addEventListener("click", () => {
+    filter.values = boxes().filter((box) => box.checked).map((box) => box.value);
+    pop.remove();
+    renderAnalysisConfig();
+  });
+  pop.addEventListener("click", (event) => event.stopPropagation());
+}
+
+function defaultFilter(name) {
+  return {
+    field: name,
+    op: isTextField(name) ? "eq" : "gt",
+    value: "",
+    values: [],
+    value2: ""
+  };
+}
+
+function normalizeMetricOps() {
+  const last = analysisState.metrics.length - 1;
+  analysisState.metrics.forEach((metric, index) => {
+    if (index === last) {
+      metric.op = "";
+    } else if (!CONNECTORS.includes(metric.op)) {
+      metric.op = "AND";
+    }
+  });
+}
+
+function applyPickedFields(index, picked, kind) {
+  if (kind === "filter") {
+    analysisState.filters[index] = defaultFilter(picked[0]);
+    picked.slice(1).forEach((name) => analysisState.filters.push(defaultFilter(name)));
+  } else {
+    analysisState.metrics[index] = {
+      field: picked[0],
+      agg: "sum",
+      op: analysisState.metrics[index]?.op ?? "AND"
+    };
+    picked.slice(1).forEach((name) =>
+      analysisState.metrics.push({ field: name, agg: "sum", op: "AND" })
+    );
+    normalizeMetricOps();
+  }
+  renderAnalysisConfig();
+  toast(`已添加 ${picked.length} 个${kind === "filter" ? "条件" : "指标"}`);
+}
+
+/* ── 计算引擎 ── */
+function evalFilter(row, filter, pool) {
+  if (filter.op === "aboveAvg" || filter.op === "belowAvg") {
+    const nums = pool.map((r) => Number(r[filter.field])).filter((v) => Number.isFinite(v));
+    if (nums.length === 0) return false;
+    const avg = nums.reduce((a, b) => a + b, 0) / nums.length;
+    const value = Number(row[filter.field]);
+    return filter.op === "aboveAvg" ? value > avg : value < avg;
+  }
+
+  if (isTextField(filter.field)) {
+    const selected = filter.values ?? [];
+    const text = String(row[filter.field]);
+    if (filter.op === "eq") return selected.length === 0 ? true : selected.includes(text);
+    if (filter.op === "ne") return selected.length === 0 ? true : !selected.includes(text);
+    const target = String(filter.value ?? "");
+    if (target === "") return true;
+    switch (filter.op) {
+      case "startsWith": return text.startsWith(target);
+      case "endsWith": return text.endsWith(target);
+      case "contains": return text.includes(target);
+      case "notContains": return !text.includes(target);
+      default: return true;
+    }
+  }
+
+  const filled = filter.value !== "" && filter.value !== null && filter.value !== undefined;
+  if (!filled && filter.op !== "between") return true;
+  const value = Number(row[filter.field]);
+  const a = Number(filter.value);
+  const b = Number(filter.value2);
+  switch (filter.op) {
+    case "eq": return value === a;
+    case "ne": return value !== a;
+    case "gt": return value > a;
+    case "ge": return value >= a;
+    case "lt": return value < a;
+    case "le": return value <= a;
+    case "between": return value >= Math.min(a, b) && value <= Math.max(a, b);
+    default: return true;
+  }
+}
+
+function aggValues(rows, metric) {
+  if (metric.agg === "count") return rows.length;
+  const nums = rows.map((r) => Number(r[metric.field])).filter((v) => Number.isFinite(v));
+  if (nums.length === 0) return 0;
+  switch (metric.agg) {
+    case "sum": return nums.reduce((a, b) => a + b, 0);
+    case "avg": return nums.reduce((a, b) => a + b, 0) / nums.length;
+    case "min": return Math.min(...nums);
+    case "max": return Math.max(...nums);
+    case "median": {
+      const sorted = [...nums].sort((a, b) => a - b);
+      const mid = Math.floor(sorted.length / 2);
+      return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+    }
+    default: return 0;
+  }
+}
+
+function chainValue(chain, values) {
+  let acc = values[chain[0]];
+  for (let i = 1; i < chain.length; i += 1) {
+    const op = analysisState.metrics[chain[i - 1]].op;
+    const value = values[chain[i]];
+    if (op === "+") acc += value;
+    else if (op === "−") acc -= value;
+    else if (op === "×") acc *= value;
+    else if (op === "÷") acc = value === 0 ? NaN : acc / value;
+  }
+  return acc;
+}
+
+function computeAnalysis() {
+  const ranged = rangedRows();
+  const plain = analysisState.filters.filter((f) => !NO_VALUE_OPS.has(f.op));
+  const pool = ranged.filter((row) => plain.every((f) => evalFilter(row, f, ranged)));
+  const avgFilters = analysisState.filters.filter((f) => NO_VALUE_OPS.has(f.op));
+  const filtered = pool.filter((row) => avgFilters.every((f) => evalFilter(row, f, pool)));
+
+  const dimFields = [];
+  const columnFields = [];
+  analysisState.filters.forEach((filter) => {
+    if (!isDim(filter)) return;
+    if (!columnFields.includes(filter.field)) {
+      columnFields.push(filter.field);
+      dimFields.push(filter.field);
+    }
+  });
+
+  const chains = chainsOf();
+  const arithmetic = chains.filter((chain) => chain.length > 1);
+  const labels = analysisState.metrics.map(metricLabel);
+
+  const buckets = new Map();
+  filtered.forEach((row) => {
+    const key = dimFields.length > 0 ? dimFields.map((f) => String(row[f])).join(" · ") : "全表";
+    if (!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(row);
+  });
+
+  const rows = [...buckets.entries()]
+    .map(([key, group]) => {
+      const sample = group[0];
+      const fieldValues = columnFields.map((field) => String(sample[field]));
+      const values = analysisState.metrics.map((metric) => aggValues(group, metric));
+      const derived = arithmetic.map((chain) => chainValue(chain, values));
+      return { key, fieldValues, values, derived, count: group.length };
+    })
+    .sort((a, b) => String(a.key).localeCompare(String(b.key), "zh"));
+
+  const totals = analysisState.metrics.map((metric) => aggValues(filtered, metric));
+
+  return {
+    rows,
+    columnFields,
+    dimFields,
+    labels,
+    derivedLabels: derivedLabels(),
+    totals,
+    totalDerived: arithmetic.map((chain) => chainValue(chain, totals)),
+    scanned: DEMO_ROWS.length,
+    ranged: ranged.length,
+    filtered: filtered.length
+  };
+}
+
+/* ── 结果渲染 ── */
+function renderResult() {
+  const res = analysisState.result;
+  if (!res) return;
+  $("#result-empty").hidden = true;
+  const isTable = analysisState.tab === "table";
+  $("#result-table").hidden = !isTable;
+  $("#chart-panel").hidden = isTable;
+  if (!isTable) {
+    renderChartConfig();
+    renderChart();
+    return;
+  }
+
+  const head = `<tr>
+    ${res.columnFields.map((field) => `<th>${field}</th>`).join("")}
+    ${res.labels.map((label) => `<th class="num">${label}</th>`).join("")}
+    ${res.derivedLabels.map((label) => `<th class="num">${label}</th>`).join("")}
+  </tr>`;
+  const body = res.rows
+    .map(
+      (row, rowIndex) => `<tr data-row="${rowIndex}">
+      ${row.fieldValues.map((value) => `<td>${value}</td>`).join("")}
+      ${row.values.map((value) => `<td class="num">${fmtNum(value)}</td>`).join("")}
+      ${row.derived.map((value) => `<td class="num" style="font-weight:600">${fmtNum(value)}</td>`).join("")}
+    </tr>`
+    )
+    .join("");
+  const total = `<tr style="background:var(--color-bg-sunken);font-weight:600">
+    <td colspan="${res.columnFields.length || 1}">合计</td>
+    ${res.totals.map((value) => `<td class="num">${fmtNum(value)}</td>`).join("")}
+    ${res.totalDerived.map((value) => `<td class="num">${fmtNum(value)}</td>`).join("")}
+  </tr>`;
+
+  const countList = res.rows.map((row) => row.count);
+  const countHint =
+    countList.length > 12
+      ? `${countList.slice(0, 12).join(" / ")} …（共 ${countList.length} 组）`
+      : countList.join(" / ");
+
+  $("#result-table").innerHTML = `
+    <table class="table"><thead>${head}</thead><tbody>${body}${total}</tbody></table>
+    <div class="tiny" style="margin-top:8px">
+      ${res.rows.length} 行 · 扫描 ${res.scanned} 行 → 时间范围内 ${res.ranged} 行 → 筛选后 ${res.filtered} 行
+      ${res.dimFields.length ? `· 分组：${res.dimFields.join(" × ")}` : "· 未分组"}
+      <br />各行命中行数：${countHint}（提示用，不进入导出表格）
+      ${derivedFormula() ? `<br />${derivedFormula()}` : ""}
+    </div>`;
+}
+
+function openXAxisPicker(anchor) {
+  hideCtx();
+  const res = analysisState.result;
+  if (!res) return;
+  const pop = document.createElement("div");
+  pop.className = "picker";
+  pop.style.width = "272px";
+
+  const renderBody = () => {
+    const field = analysisState.chartX ?? res.columnFields[0] ?? "";
+    const values = field ? distinctValues(field) : [];
+    const chosen = analysisState.chartXValues ?? [];
+    pop.innerHTML = `
+      <div class="tiny" style="padding:2px 4px 6px">X 轴 · 一级：选字段</div>
+      <div class="picker-list" style="max-height:132px">
+        ${res.columnFields
+          .map(
+            (item) =>
+              `<label class="picker-item"><input type="radio" name="xaxis" value="${item}" ${
+                field === item ? "checked" : ""
+              } /><span>${item}</span><span class="dtype">${distinctValues(item).length} 个取值</span></label>`
+          )
+          .join("")}
+      </div>
+      <div style="height:1px;background:var(--color-border-soft);margin:6px 2px"></div>
+      <div class="tiny" style="padding:0 4px 6px">二级：勾选取值（不勾 = 全部）</div>
+      <div class="picker-list" style="max-height:150px">
+        ${values
+          .map(
+            (value) =>
+              `<label class="picker-item"><input type="checkbox" data-xvalue="${value}" ${
+                chosen.includes(value) ? "checked" : ""
+              } /><span>${value}</span></label>`
+          )
+          .join("")}
+      </div>
+      <div class="picker-foot">
+        <button class="btn btn-ghost" data-xall>全选</button>
+        <button class="btn btn-ghost" data-xnone>清空</button>
+        <span style="flex:1"></span>
+        <button class="btn btn-primary" data-xok>确定</button>
+      </div>`;
+
+    pop.querySelectorAll('input[name="xaxis"]').forEach((radio) =>
+      radio.addEventListener("change", () => {
+        analysisState.chartX = radio.value;
+        analysisState.chartXValues = [];
+        renderBody();
+      })
+    );
+    pop.querySelector("[data-xall]").addEventListener("click", () => {
+      pop.querySelectorAll("[data-xvalue]").forEach((box) => {
+        box.checked = true;
+      });
+    });
+    pop.querySelector("[data-xnone]").addEventListener("click", () => {
+      pop.querySelectorAll("[data-xvalue]").forEach((box) => {
+        box.checked = false;
+      });
+    });
+    pop.querySelector("[data-xok]").addEventListener("click", () => {
+      analysisState.chartXValues = Array.from(pop.querySelectorAll("[data-xvalue]"))
+        .filter((box) => box.checked)
+        .map((box) => box.value);
+      pop.remove();
+      renderChartConfig();
+      renderChart();
+    });
+  };
+
+  renderBody();
+  const rect = anchor.getBoundingClientRect();
+  pop.style.left = Math.min(rect.left, window.innerWidth - 300) + "px";
+  pop.style.top = Math.min(rect.bottom + 4, window.innerHeight - 430) + "px";
+  document.body.appendChild(pop);
+  pop.addEventListener("click", (event) => event.stopPropagation());
+}
+
+function chartSeries(res) {
+  const labels = [...res.labels, ...res.derivedLabels];
+  const selected = analysisState.chartY.filter((label) => labels.includes(label));
+  const active = selected.length > 0 ? selected : labels.slice(0, 1);
+  const xIndex = res.columnFields.indexOf(analysisState.chartX);
+  const xValues = analysisState.chartXValues ?? [];
+  let included = res.rows.filter((row) => {
+    if (xValues.length === 0) return true;
+    const key = xIndex >= 0 ? row.fieldValues[xIndex] : row.key;
+    return xValues.includes(key);
+  });
+  // 勾选的取值与当前结果不匹配时兜底用全部行，避免"有数据却画不出来"
+  if (included.length === 0) included = res.rows.slice();
+  const categories = included.map((row) => (xIndex >= 0 ? row.fieldValues[xIndex] : row.key));
+  const series = active.map((label) => {
+    const metricIndex = res.labels.indexOf(label);
+    const data = included.map((row) =>
+      metricIndex >= 0 ? row.values[metricIndex] : row.derived[res.derivedLabels.indexOf(label)]
+    );
+    return { name: label, data };
+  });
+  return { categories, series };
+}
+
+function renderChartConfig() {
+  const res = analysisState.result;
+  const labels = [...res.labels, ...res.derivedLabels];
+  if (!res.columnFields.includes(analysisState.chartX)) {
+    analysisState.chartX = res.columnFields[0] ?? null;
+    analysisState.chartXValues = [];
+  }
+  analysisState.chartY = analysisState.chartY.filter((label) => labels.includes(label));
+  if (analysisState.chartY.length === 0) analysisState.chartY = labels.slice(0, 2);
+  $("#chart-x-label").textContent = analysisState.chartX ?? "—";
+  $("#chart-y").innerHTML = labels
+    .map(
+      (label) =>
+        `<button class="y-chip ${analysisState.chartY.includes(label) ? "on" : ""}" data-y="${label}">${label}</button>`
+    )
+    .join("");
+  $$("#chart-type button").forEach((b) =>
+    b.classList.toggle("on", b.dataset.v === analysisState.chartType)
+  );
+}
+
+const CHART_COLORS = ["#6f9fd8", "#7fb98a", "#d3a86a", "#a98bc9", "#c98b8b"];
+
+function renderChart() {
+  const res = analysisState.result;
+  const { categories, series } = chartSeries(res);
+  const host = $("#result-chart");
+  if (series.length === 0 || categories.length === 0) {
+    host.innerHTML = `<div class="tiny">没有可绘制的数据</div>`;
+    return;
+  }
+  const head = `<div class="chart-title ${analysisState.chartTitle ? "" : "placeholder"}" data-chart-title="1">${
+    analysisState.chartTitle || "图表标题（双击可改）"
+  }</div>`;
+  const w = 660, h = 340, padL = 56, padB = 62, padT = 18;
+  const type = analysisState.chartType;
+  const allValues = series.flatMap((s) => s.data.filter((v) => Number.isFinite(v)));
+  const max = Math.max(...allValues, 0.0001);
+  const min = Math.min(...allValues, 0);
+  const span = max - min || 1;
+  const yOf = (v) => h - padB - ((v - min) / span) * (h - padB - padT);
+  const xOf = (i) => padL + (categories.length === 1 ? (w - padL - 30) / 2 : (i / (categories.length - 1)) * (w - padL - 30));
+
+  const grid = [0, 0.25, 0.5, 0.75, 1]
+    .map((t) => {
+      const value = min + span * t;
+      const y = yOf(value).toFixed(1);
+      return `<line x1="${padL}" y1="${y}" x2="${w - 10}" y2="${y}" stroke="var(--color-border-soft)" opacity=".55"></line>
+        <text x="${padL - 8}" y="${Number(y) + 3}" font-size="9" fill="var(--color-text-tertiary)" text-anchor="end">${value.toFixed(2)}</text>`;
+    })
+    .join("");
+
+  const xLabels = categories
+    .map((label, i) => {
+      const text = String(label).length > 8 ? String(label).slice(0, 8) + "…" : String(label);
+      return `<text x="${xOf(i)}" y="${h - padB + 18}" font-size="10" fill="var(--color-text-tertiary)" text-anchor="middle">${text}</text>`;
+    })
+    .join("");
+
+  let drawing = "";
+  if (type === "pie") {
+    const first = series[0];
+    const data = categories.map((_, i) => (Number.isFinite(first?.data[i]) ? Math.max(first.data[i], 0) : 0));
+    const total = data.reduce((a, b) => a + b, 0) || 1;
+    const cx = w / 2;
+    const cy = h / 2 - 18;
+    const radius = Math.min(w, h) / 3.4;
+    let angle = -Math.PI / 2;
+    const slices = data
+      .map((value, i) => {
+        const slice = (value / total) * Math.PI * 2;
+        const x1 = cx + radius * Math.cos(angle);
+        const y1 = cy + radius * Math.sin(angle);
+        angle += slice;
+        const x2 = cx + radius * Math.cos(angle);
+        const y2 = cy + radius * Math.sin(angle);
+        const large = slice > Math.PI ? 1 : 0;
+        return `<path d="M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} A${radius},${radius} 0 ${large} 1 ${x2.toFixed(1)},${y2.toFixed(1)} Z"
+          fill="${CHART_COLORS[i % CHART_COLORS.length]}" opacity=".85"></path>`;
+      })
+      .join("");
+    const pieLegend = categories
+      .map(
+        (label, i) =>
+          `<span data-legend="${i}" data-legend-name="${label}"><i style="background:${CHART_COLORS[i % CHART_COLORS.length]}"></i>${
+            analysisState.legendNames?.[label] ?? label
+          } ${((data[i] / total) * 100).toFixed(1)}%</span>`
+      )
+      .join("");
+    host.innerHTML = `${head}<div style="width:100%">
+      <svg viewBox="0 0 ${w} ${h}" width="100%" style="max-height:300px">${slices}</svg>
+      <div class="chart-legend">${pieLegend}</div></div>`;
+    return;
+  }
+
+  if (type === "scatter") {
+    drawing = series
+      .map((s, si) => {
+        const color = CHART_COLORS[si % CHART_COLORS.length];
+        return s.data
+          .map(
+            (value, i) =>
+              `<circle cx="${xOf(i)}" cy="${yOf(Number.isFinite(value) ? value : min)}" r="4" fill="${color}" opacity=".85"></circle>`
+          )
+          .join("");
+      })
+      .join("");
+  } else if (type === "bar") {
+    const groupWidth = (w - padL - 30) / Math.max(categories.length, 1);
+    const barWidth = Math.max(6, (groupWidth - 10) / series.length);
+    drawing = series
+      .map((s, si) =>
+        s.data
+          .map((value, i) => {
+            const v = Number.isFinite(value) ? value : min;
+            const x = padL + i * groupWidth + 6 + si * barWidth;
+            const y = yOf(v);
+            return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}"
+              height="${(h - padB - y).toFixed(1)}" rx="3" fill="${CHART_COLORS[si % CHART_COLORS.length]}" opacity=".85"></rect>`;
+          })
+          .join("")
+      )
+      .join("");
+  } else {
+    drawing = series
+      .map((s, si) => {
+        const color = CHART_COLORS[si % CHART_COLORS.length];
+        const points = s.data
+          .map((value, i) => `${xOf(i).toFixed(1)},${yOf(Number.isFinite(value) ? value : min).toFixed(1)}`)
+          .join(" ");
+        const dots = s.data
+          .map(
+            (value, i) =>
+              `<circle cx="${xOf(i).toFixed(1)}" cy="${yOf(Number.isFinite(value) ? value : min).toFixed(1)}" r="3" fill="${color}"></circle>`
+          )
+          .join("");
+        return `<polyline points="${points}" fill="none" stroke="${color}" stroke-width="2"></polyline>${dots}`;
+      })
+      .join("");
+  }
+
+  const legend =
+    series.length > 1
+      ? `<div class="chart-legend">${series
+          .map((s, i) => {
+            const label = analysisState.legendNames?.[s.name] ?? s.name;
+            return `<span data-legend="${i}" data-legend-name="${s.name}"><i style="background:${CHART_COLORS[i % CHART_COLORS.length]}"></i>${label}</span>`;
+          })
+          .join("")}</div>`
+      : "";
+
+  host.innerHTML = head + `<div style="width:100%">
+    <svg viewBox="0 0 ${w} ${h}" width="100%" style="max-height:300px">
+      ${grid}
+      <line x1="${padL}" y1="${h - padB}" x2="${w - 10}" y2="${h - padB}" stroke="var(--color-border)"></line>
+      ${drawing}${xLabels}
+    </svg>${legend}</div>`;
+}
+
+/* ── 事件绑定 ── */
+$("#analysis-back").addEventListener("click", () => go("workspace"));
+$("#analysis-regression").addEventListener("click", () => go("regression"));
+$("#analysis-help").addEventListener("click", () => {
+  go("help");
+  renderDoc("rules");
+});
+
+$("#run-analysis").addEventListener("click", () => {
+  if (analysisState.metrics.length === 0) {
+    toast("请至少添加一个计算指标");
+    return;
+  }
+  const btn = $("#run-analysis");
+  btn.disabled = true;
+  btn.textContent = "计算中…";
+  $("#config-status").textContent = "正在计算…";
+  setTimeout(() => {
+    analysisState.result = computeAnalysis();
+    state.analysisDone = true;
+    btn.disabled = false;
+    btn.textContent = "开始计算";
+    const res = analysisState.result;
+    $("#config-status").textContent = `${res.rows.length} 行结果 · 命中 ${res.filtered} / 扫描 ${res.scanned} 行`;
+    renderResult();
+  }, 240);
+});
+
+$$("#result-tabs button").forEach((btn) =>
+  btn.addEventListener("click", () => {
+    analysisState.tab = btn.dataset.tab;
+    $$("#result-tabs button").forEach((b) => b.classList.toggle("on", b === btn));
+    renderResult();
+  })
+);
+
+/* 双击编辑：表头 / 结果单元格 —— 定稿后再导出 */
+$("#result-table").addEventListener("dblclick", (event) => {
+  const res = analysisState.result;
+  if (!res) return;
+  const target = event.target.closest("th, td");
+  if (!target || target.dataset.editing === "1") return;
+  const isHeader = target.tagName === "TH";
+  const tr = target.closest("tr");
+  const rowIndex = tr && tr.dataset.row !== undefined ? Number(tr.dataset.row) : null;
+  if (!isHeader && rowIndex === null) return;
+
+  const original = target.textContent;
+  target.dataset.editing = "1";
+  target.innerHTML = `<input class="input" style="height:24px;padding:0 4px;min-width:72px" value="${original}" />`;
+  const input = target.querySelector("input");
+  input.focus();
+  input.select();
+  let done = false;
+
+  const commit = (save) => {
+    if (done) return;
+    done = true;
+    const text = save ? input.value : original;
+    target.textContent = text;
+    delete target.dataset.editing;
+    if (!save) return;
+    target.classList.add("edited");
+
+    if (isHeader) {
+      const index = Array.from(tr.children).indexOf(target);
+      const groupCount = res.columnFields.length;
+      const metricCount = res.labels.length;
+      if (index < groupCount) res.columnFields[index] = text;
+      else if (index < groupCount + metricCount) res.labels[index - groupCount] = text;
+      else res.derivedLabels[index - groupCount - metricCount] = text;
+      toast("已修改表头，导出将使用这个名称");
+      return;
+    }
+
+    const colIndex = Array.from(tr.children).indexOf(target);
+    const groupCount = res.columnFields.length;
+    const metricCount = res.labels.length;
+    if (colIndex < groupCount) {
+      res.rows[rowIndex].fieldValues[colIndex] = text;
+    } else {
+      const numeric = Number(String(text).replace(/,/g, ""));
+      const value = Number.isFinite(numeric) ? numeric : text;
+      const offset = colIndex - groupCount;
+      if (offset < metricCount) res.rows[rowIndex].values[offset] = value;
+      else res.rows[rowIndex].derived[offset - metricCount] = value;
+    }
+    toast("已修改，导出将使用这个值");
+  };
+
+  input.addEventListener("blur", () => commit(true));
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      commit(true);
+    }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      commit(false);
+    }
+  });
+});
+
+/* 双击图例 / 图表标题：原地编辑，与表格单元格同一种交互 */
+$("#result-chart").addEventListener("dblclick", (event) => {
+  const legend = event.target.closest("[data-legend]");
+  const titleEl = event.target.closest("[data-chart-title]");
+  const target = legend ?? titleEl;
+  if (!target || target.dataset.editing === "1") return;
+  event.stopPropagation();
+  const original = target.textContent;
+  const initial = legend ? target.dataset.legendName ?? original : analysisState.chartTitle ?? "";
+  target.dataset.editing = "1";
+  target.innerHTML = `<input class="input" style="height:22px;padding:0 4px;min-width:96px" value="${initial}" />`;
+  const input = target.querySelector("input");
+  input.focus();
+  input.select();
+  let done = false;
+  const commit = (save) => {
+    if (done) return;
+    done = true;
+    delete target.dataset.editing;
+    if (!save) {
+      target.textContent = original;
+      return;
+    }
+    const text = input.value.trim();
+    if (legend) {
+      const data = chartSeries(analysisState.result);
+      const index = Number(legend.dataset.legend);
+      const key =
+        analysisState.chartType === "pie" ? data.categories[index] : data.series[index]?.name;
+      if (key) {
+        analysisState.legendNames = { ...(analysisState.legendNames ?? {}), [key]: text };
+      }
+      renderChart();
+      return;
+    }
+    analysisState.chartTitle = text;
+    renderChart();
+  };
+  input.addEventListener("blur", () => commit(true));
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      commit(true);
+    }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      commit(false);
+    }
+  });
+});
+
+$("#chart-x-btn").addEventListener("click", (event) => {
+  event.stopPropagation();
+  openXAxisPicker(event.currentTarget);
+});
+
+$$("#a-range button").forEach((btn) =>
+  btn.addEventListener("click", () => {
+    analysisState.range = btn.dataset.v;
+    const presets = { 本月: ["2026-10-01", "2026-10-31"], 上月: ["2026-09-01", "2026-09-30"] };
+    const pair = presets[analysisState.range];
+    if (pair) {
+      analysisState.from = pair[0];
+      analysisState.to = pair[1];
+    }
+    renderAnalysisConfig();
+    toast(`时间范围：${analysisState.from} ~ ${analysisState.to}`);
+  })
+);
+
+$("#a-from").addEventListener("change", (event) => {
+  analysisState.from = event.target.value;
+  renderAnalysisConfig();
+});
+$("#a-to").addEventListener("change", (event) => {
+  analysisState.to = event.target.value;
+  renderAnalysisConfig();
+});
+$("#a-add-filter").addEventListener("click", () => {
+  analysisState.filters.push(defaultFilter("目的所属省份"));
+  renderAnalysisConfig();
+});
+$("#a-add-metric").addEventListener("click", () => {
+  analysisState.metrics.push({
+    field: "结算重量",
+    agg: "sum",
+    op: analysisState.metrics.length > 0 ? "AND" : ""
+  });
+  normalizeMetricOps();
+  renderAnalysisConfig();
+});
+
+document.addEventListener("click", (event) => {
+  const fvpick = event.target.closest("[data-fvpick]");
+  if (fvpick) {
+    openValuePicker(fvpick, Number(fvpick.dataset.fvpick));
+    return;
+  }
+  const move = event.target.closest("[data-move]");
+  if (move) {
+    const [kind, idx, dir] = move.dataset.move.split(":");
+    const list = kind === "filter" ? analysisState.filters : analysisState.metrics;
+    const from = Number(idx);
+    const to = from + Number(dir);
+    if (to >= 0 && to < list.length) {
+      const ops = list.map((item) => item.op);
+      [list[from], list[to]] = [list[to], list[from]];
+      list.forEach((item, index) => {
+        item.op = ops[index];
+      });
+      if (kind === "metric") normalizeMetricOps();
+      renderAnalysisConfig();
+    }
+    return;
+  }
+  const chartType = event.target.closest("#chart-type button");
+  if (chartType) {
+    analysisState.chartType = chartType.dataset.v;
+    renderChartConfig();
+    renderChart();
+    return;
+  }
+  const yChip = event.target.closest("[data-y]");
+  if (yChip) {
+    const label = yChip.dataset.y;
+    if (analysisState.chartY.includes(label)) {
+      if (analysisState.chartY.length === 1) return;
+      analysisState.chartY = analysisState.chartY.filter((item) => item !== label);
+    } else {
+      analysisState.chartY.push(label);
+    }
+    renderChartConfig();
+    renderChart();
+    return;
+  }
+  const pickField = event.target.closest("[data-pick-field]");
+  if (pickField) {
+    openFieldPicker(pickField, (picked) =>
+      applyPickedFields(Number(pickField.dataset.pickField), picked, "filter")
+    );
+    return;
+  }
+  const pickMetric = event.target.closest("[data-pick-metric]");
+  if (pickMetric) {
+    openFieldPicker(
+      pickMetric,
+      (picked) => applyPickedFields(Number(pickMetric.dataset.pickMetric), picked, "metric"),
+      "any"
+    );
+    return;
+  }
+  const rmFilter = event.target.closest("[data-rm-filter]");
+  if (rmFilter) {
+    analysisState.filters.splice(Number(rmFilter.dataset.rmFilter), 1);
+    renderAnalysisConfig();
+    return;
+  }
+  const rmMetric = event.target.closest("[data-rm-metric]");
+  if (rmMetric) {
+    analysisState.metrics.splice(Number(rmMetric.dataset.rmMetric), 1);
+    normalizeMetricOps();
+    renderAnalysisConfig();
+  }
+});
+
+document.addEventListener("change", (event) => {
+  const fop = event.target.closest("[data-fop]");
+  if (fop) {
+    const index = Number(fop.dataset.fop);
+    analysisState.filters[index].op = fop.value;
+    if (analysisState.filters[index].values === undefined) {
+      analysisState.filters[index].values = [];
+    }
+    renderAnalysisConfig();
+    return;
+  }
+  const magg = event.target.closest("[data-magg]");
+  if (magg) {
+    analysisState.metrics[Number(magg.dataset.magg)].agg = magg.value;
+    renderAnalysisConfig();
+    return;
+  }
+  const mop = event.target.closest("[data-mop]");
+  if (mop) {
+    analysisState.metrics[Number(mop.dataset.mop)].op = mop.value;
+    renderDerived();
+    return;
+  }
+  if (event.target.closest("#chart-x-btn")) {
+    openXAxisPicker(event.target.closest("#chart-x-btn"));
+    return;
+  }
+});
+
+document.addEventListener("input", (event) => {
+  const fv = event.target.closest("[data-fv]");
+  if (fv) {
+    analysisState.filters[Number(fv.dataset.fv)].value = fv.value;
+    return;
+  }
+  const fv2 = event.target.closest("[data-fv2]");
+  if (fv2) {
+    analysisState.filters[Number(fv2.dataset.fv2)].value2 = fv2.value;
+  }
+});
+
+
+/* ═══════════════════ 项目页 ═══════════════════ */
+function renderProjects() {
+  const table = $("#project-table");
+  const filter = state.projectFilter ?? "all";
+  const keyword = ($("#project-search").value || "").trim();
+  const list = PROJECTS.map((p, i) => ({ ...p, idx: i })).filter((p) => {
+    if (filter === "auto" && !p.auto) return false;
+    if (filter === "manual" && p.auto) return false;
+    if (keyword !== "" && !`${p.name}${p.creator}`.includes(keyword)) return false;
+    return true;
+  });
+  table.innerHTML = `
+    <thead><tr>
+      <th style="width:36px"></th><th>项目名</th><th>创建人</th><th>创建时间</th>
+      <th class="num">行 × 列</th><th>结果</th><th>最近打开</th><th style="width:44px"></th>
+    </tr></thead>
+    <tbody>${list.map((p) => `
+      <tr data-idx="${p.idx}">
+        <td style="text-align:center"><input type="checkbox" data-pick="${p.idx}" /></td>
+        <td>${p.name}${p.auto ? ' <span class="chip">自动保存</span>' : ""}</td>
+        <td>${p.creator}</td>
+        <td>${p.created}</td>
+        <td class="num">${p.rows.toLocaleString()} × ${p.cols}</td>
+        <td>${p.result ? '<span class="chip chip-ok">有</span>' : '<span class="chip">—</span>'}</td>
+        <td class="tiny">${p.opened}</td>
+        <td style="text-align:center;white-space:nowrap">
+          <button class="btn btn-ghost" data-analyze="${p.idx}" ${p.result ? "" : "disabled"} title="${p.result ? "直达分析界面（含上次配置）" : "该项目还没有分析结果"}">分析</button>
+          <button class="btn btn-ghost btn-icon" data-open="${p.idx}">⋯</button>
+        </td>
+      </tr>`).join("")}</tbody>`;
+  $("#project-count").textContent = `${list.length} / ${PROJECTS.length} 个项目`;
+
+  $$("[data-pick]").forEach((cb) => cb.addEventListener("change", () => {
+    const idx = Number(cb.dataset.pick);
+    if (cb.checked) state.selectedProjects.add(idx); else state.selectedProjects.delete(idx);
+    const n = state.selectedProjects.size;
+    const btn = $("#merge-selected");
+    btn.disabled = n < 2;
+    btn.textContent = n >= 2 ? `合并所选 (${n})` : "合并所选";
+  }));
+
+  $$("[data-open]").forEach((btn) => btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const p = PROJECTS[Number(btn.dataset.open)];
+    const row = btn.closest("tr");
+    const rect = btn.getBoundingClientRect();
+    showProjectMenu(p, rect.left - 150, rect.bottom + 4, row);
+  }));
+
+  $$("#project-table tbody tr").forEach((tr) => tr.addEventListener("dblclick", () => {
+    openProject(PROJECTS[Number(tr.dataset.idx)]);
+  }));
+}
+
+function showProjectMenu(project, x, y, row) {
+  hidePopoverMenus();
+  const menu = document.createElement("div");
+  menu.className = "ctx";
+  menu.style.left = Math.max(12, x) + "px";
+  menu.style.top = y + "px";
+  menu.innerHTML = `
+    <button data-pm="open">打开项目</button>
+    <button data-pm="rename">重命名</button>
+    <button data-pm="base">设为合并基准</button>
+    <div class="sep"></div>
+    <button data-pm="delete" style="color:var(--color-danger)">删除</button>`;
+  document.body.appendChild(menu);
+  menu.addEventListener("click", (ev) => {
+    const act = ev.target.closest("button")?.dataset.pm;
+    hideCtx();
+    if (act === "open") { openProject(project); return; }
+    if (act === "delete") {
+      openDialog("删除项目", `<p style="font-size:13px;color:var(--color-text-secondary)">确定删除「${project.name}」？项目数据与缓存目录会被一并删除，此操作不可撤销。</p>`,
+        `<button class="btn btn-secondary" data-close>取消</button><button class="btn btn-primary" id="do-delete">删除</button>`);
+      $("#do-delete").addEventListener("click", () => { row.remove(); closeDialog(); toast("已删除项目"); });
+      return;
+    }
+    toast(act === "rename" ? "演示：重命名项目" : "已设为合并基准");
+  });
+}
+
+$("#new-from-projects").addEventListener("click", openNewProject);
+
+/* 项目筛选 / 清理未命名 —— 配合「导入即自动存项目」策略 */
+$$("#project-filter button").forEach((btn) =>
+  btn.addEventListener("click", () => {
+    state.projectFilter = btn.dataset.v;
+    $$("#project-filter button").forEach((b) => b.classList.toggle("on", b === btn));
+    renderProjects();
+  })
+);
+$("#project-search").addEventListener("input", renderProjects);
+
+$("#cleanup-auto").addEventListener("click", () => {
+  const autoCount = PROJECTS.filter((p) => p.auto).length;
+  if (autoCount === 0) {
+    toast("没有自动保存的未命名项目");
+    return;
+  }
+  openDialog(
+    "清理自动保存的项目",
+    `<p style="font-size:13px;color:var(--color-text-secondary)">
+       将删除 ${autoCount} 个自动保存的「未命名」项目及其缓存目录。<br />手动创建的项目不受影响，此操作可在回收站前撤销。
+     </p>`,
+    `<button class="btn btn-secondary" data-close>取消</button>
+     <button class="btn btn-primary" id="do-cleanup">删除 ${autoCount} 个</button>`
+  );
+  $("#do-cleanup").addEventListener("click", () => {
+    for (let i = PROJECTS.length - 1; i >= 0; i -= 1) {
+      if (PROJECTS[i].auto) PROJECTS.splice(i, 1);
+    }
+    closeDialog();
+    renderProjects();
+    toast(`已清理 ${autoCount} 个未命名项目`);
+  });
+});
+
+/* 关窗自动保存演示：拦截关闭 → 写入 → 提示 */
+$("#simulate-close").addEventListener("click", () => {
+  const seq = PROJECTS.filter((p) => /^未命名\d+$/.test(p.name))
+    .map((p) => Number(p.name.replace("未命名", "")))
+    .filter((n) => Number.isFinite(n));
+  const nextName = `未命名${(seq.length ? Math.max(...seq) : 0) + 1}`;
+  const creator = PROJECTS[0]?.creator ?? "张三";
+  openDialog(
+    "关窗拦截",
+    `<p style="font-size:13px;color:var(--color-text-secondary)">
+       检测到当前表格尚未保存，正在自动存为项目…<br />
+       项目名 <b>${nextName}</b> · 创建人 <b>${creator}</b>（沿用上次）
+     </p>
+     <div style="height:6px;border-radius:3px;background:var(--color-bg-secondary);overflow:hidden">
+       <div id="close-bar" style="height:100%;width:8%;background:var(--color-primary);transition:width .9s linear"></div>
+     </div>`,
+    `<button class="btn btn-secondary" data-close>取消关闭</button>`
+  );
+  setTimeout(() => {
+    const bar = $("#close-bar");
+    if (bar) bar.style.width = "100%";
+  }, 60);
+  setTimeout(() => {
+    PROJECTS.push({
+      name: nextName,
+      creator,
+      created: "2026-10-09",
+      rows: 200,
+      cols: 20,
+      result: false,
+      opened: "2026-10-09 11:40",
+      auto: true
+    });
+    closeDialog();
+    toast(`已自动保存为「${nextName}」并退出（演示）`);
+    renderProjects();
+  }, 1000);
+});
+
+$$("#close-save-seg button").forEach((btn) =>
+  btn.addEventListener("click", () => {
+    $$("#close-save-seg button").forEach((b) => b.classList.toggle("on", b === btn));
+    toast(btn.dataset.v === "on" ? "关闭时自动保存已开启" : "关闭时自动保存已关闭（不推荐）");
+  })
+);
+$("#merge-selected").addEventListener("click", () => {
+  if (state.selectedProjects.size < 2) { toast("至少选择 2 个项目"); return; }
+  state.mergeStep = 1;
+  $("#merge-sub").textContent = `已选 ${state.selectedProjects.size} 个项目`;
+  renderMergeStep();
+  go("merge");
+});
+
+/* ═══════════════════ 合并向导 ═══════════════════ */
+function renderMergeStep() {
+  $$("#merge-steps .step").forEach((el) => {
+    const n = Number(el.dataset.step);
+    el.classList.toggle("on", n === state.mergeStep);
+    el.classList.toggle("done", n < state.mergeStep);
+  });
+  $$(".wizard-body [data-panel]").forEach((el) => {
+    el.hidden = Number(el.dataset.panel) !== state.mergeStep;
+  });
+  $("#merge-prev").disabled = state.mergeStep === 1;
+  const next = $("#merge-next");
+  next.textContent = state.mergeStep === 3 ? "合并" : "下一步";
+  const hints = {
+    1: "选择要合并的项目后进入字段对齐预览",
+    2: "确认字段顺序与来源分布，字段名精确匹配",
+    3: "命名合并后的项目，确认后立即生成"
+  };
+  $("#merge-hint").textContent = hints[state.mergeStep];
+}
+$("#merge-next").addEventListener("click", () => {
+  if (state.mergeStep < 3) { state.mergeStep += 1; renderMergeStep(); return; }
+  toast(`已生成合并项目「${$("#merge-name").value}」20,800 行`);
+  go("projects");
+});
+$("#merge-prev").addEventListener("click", () => {
+  if (state.mergeStep > 1) { state.mergeStep -= 1; renderMergeStep(); }
+});
+$("#merge-cancel").addEventListener("click", () => go("projects"));
+
+/* ═══════════════════ 历史记录 ═══════════════════ */
+function renderHistory() {
+  const perPage = 8;
+  const items = PROJECTS;
+  const pages = Math.max(1, Math.ceil(items.length / perPage));
+  const page = Math.min(state.historyPage, pages - 1);
+  const slice = items.slice(page * perPage, page * perPage + perPage);
+  $("#history-list").innerHTML = slice.map((p) => `
+    <div class="row-btn" data-open-history="${p.name}" style="cursor:pointer">
+      <span style="flex:1">
+        <span class="name">${p.name}</span>
+        <span class="meta" style="display:block">${p.rows.toLocaleString()} 行 × ${p.cols} 列 · ${p.creator} · 最近打开 ${p.opened}</span>
+      </span>
+      ${p.result ? '<span class="chip chip-ok">有结果</span>' : ""}
+      <button class="btn btn-ghost" data-analyze-history="${p.name}" ${p.result ? "" : "disabled"} title="${p.result ? "直达分析界面（含上次配置）" : "该项目还没有分析结果"}">分析</button>
+    </div>`).join("");
+  $("#history-count").textContent = `共 ${items.length} 条 · 每页 ${perPage} 条`;
+  $("#history-pager").innerHTML = Array.from({ length: pages }, (_, i) =>
+    `<button class="${i === page ? "on" : ""}" data-hpage="${i}">${i + 1}</button>`).join("");
+
+  $$("[data-open-history]").forEach((btn) => btn.addEventListener("click", () => {
+    const p = PROJECTS.find((x) => x.name === btn.dataset.openHistory);
+    if (p) openProject(p);
+  }));
+  $$("[data-hpage]").forEach((btn) => btn.addEventListener("click", () => {
+    state.historyPage = Number(btn.dataset.hpage);
+    renderHistory();
+  }));
+}
+$("#history-to-projects").addEventListener("click", () => go("projects"));
+$("#history-reset").addEventListener("click", () => { state.historyPage = 0; renderHistory(); toast("筛选已重置"); });
+
+/* ═══════════════════ 回归 ═══════════════════ */
+$$("#reg-mode button").forEach((btn) => btn.addEventListener("click", () => {
+  $$("#reg-mode button").forEach((b) => b.classList.toggle("on", b === btn));
+  const table = btn.dataset.mode === "table";
+  $("#reg-manual").hidden = table;
+  $("#reg-table").hidden = !table;
+  renderRegression();
+}));
+
+["#reg-p", "#reg-p0", "#reg-b", "#reg-c", "#reg-z"].forEach((sel) => {
+  $(sel).addEventListener("input", renderRegression);
+});
+
+function renderRegression() {
+  const num = (sel, fallback = 0) => {
+    const v = Number($(sel).value);
+    return Number.isFinite(v) ? v : fallback;
+  };
+  const P = num("#reg-p"), P0 = num("#reg-p0"), B = num("#reg-b"), C = num("#reg-c"), Z = Math.max(1, num("#reg-z"));
+  if (P0 > 0) $("#reg-d").value = (P / P0).toFixed(3);
+
+  const crit = C - B / Z;
+  const profit = (P - C) * Z + B;
+  const be = P < C ? B / (C - P) : null;
+
+  $("#reg-out-crit").textContent = crit.toFixed(3);
+  $("#reg-out-profit").textContent = "¥" + profit.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  $("#reg-out-be").textContent = be === null ? "—" : be.toLocaleString(undefined, { maximumFractionDigits: 0 }) + " kg";
+
+  const w = 560, h = 320, padL = 48, padB = 40, padT = 18;
+  const zMax = Math.max(1000, Z);
+  const samples = 40;
+  const crits = Array.from({ length: samples + 1 }, (_, i) => {
+    const z = (zMax / samples) * i;
+    return z === 0 ? C : C - B / z;
+  });
+  const cMax = Math.max(C * 1.15, ...crits.filter((v) => Number.isFinite(v)));
+  const cMin = Math.min(0, ...crits.filter((v) => Number.isFinite(v)));
+  const x = (z) => padL + (z / zMax) * (w - padL - 12);
+  const y = (v) => h - padB - ((v - cMin) / (cMax - cMin)) * (h - padB - padT);
+
+  const path = crits.map((v, i) => `${i === 0 ? "M" : "L"}${x((zMax / samples) * i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const baselineY = y(P);
+
+  $("#reg-chart").innerHTML = `
+    <svg viewBox="0 0 ${w} ${h}" width="100%" height="100%">
+      ${[0, 0.25, 0.5, 0.75, 1].map((t) => {
+        const vv = cMin + (cMax - cMin) * t;
+        const yy = y(vv);
+        return `<line x1="${padL}" y1="${yy}" x2="${w - 12}" y2="${yy}" stroke="var(--color-border-soft)" opacity=".6"></line>
+          <text x="${padL - 8}" y="${yy + 3}" font-size="9" fill="var(--color-text-tertiary)" text-anchor="end">${vv.toFixed(2)}</text>`;
+      }).join("")}
+      <line x1="${padL}" y1="${h - padB}" x2="${w - 12}" y2="${h - padB}" stroke="var(--color-border)"></line>
+      <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h - padB}" stroke="var(--color-border)"></line>
+      <path d="${path}" fill="none" stroke="var(--color-primary)" stroke-width="2"></path>
+      <line x1="${padL}" y1="${baselineY}" x2="${w - 12}" y2="${baselineY}" stroke="var(--color-danger)" stroke-width="1.6" stroke-dasharray="5 4"></line>
+      <text x="${w - 16}" y="${baselineY - 6}" font-size="10" fill="var(--color-danger)" text-anchor="end">盈利基线 P = ${P.toFixed(2)}</text>
+      <text x="${padL}" y="${h - 12}" font-size="9" fill="var(--color-text-tertiary)">货量 Z（kg）→</text>
+      <text x="${padL - 6}" y="${padT - 4}" font-size="9" fill="var(--color-text-tertiary)">P_critical</text>
+    </svg>`;
+}
+
+$$(".acc-head[data-acc]").forEach((btn) => btn.addEventListener("click", () => {
+  const body = btn.nextElementSibling;
+  body.hidden = !body.hidden;
+  btn.querySelector("span").textContent = body.hidden ? "▾" : "▴";
+}));
+
+/* ═══════════════════ 设置 ═══════════════════ */
+$$("#theme-seg button").forEach((btn) => btn.addEventListener("click", () => {
+  state.theme = btn.dataset.theme;
+  document.documentElement.setAttribute("data-theme", state.theme);
+  $$("#theme-seg button").forEach((b) => b.classList.toggle("on", b === btn));
+  toast(state.theme === "dark" ? "已切换到深色主题" : "已切换到浅色主题");
+}));
+
+$$("#scale-seg button").forEach((btn) => btn.addEventListener("click", () => {
+  state.scale = Number(btn.dataset.scale);
+  document.documentElement.style.setProperty("--text-scale", String(state.scale));
+  $$("#scale-seg button").forEach((b) => b.classList.toggle("on", b === btn));
+}));
+
+/* ═══════════════════ 帮助 ═══════════════════ */
+function renderDoc(key) {
+  const doc = HELP_DOCS[key] || HELP_DOCS.start;
+  $("#help-body").innerHTML = doc.body;
+  $$("#help-toc button").forEach((b) => b.classList.toggle("on", b.dataset.doc === key));
+}
+$$("#help-toc button").forEach((btn) => btn.addEventListener("click", () => renderDoc(btn.dataset.doc)));
+
+/* ═══════════════════ 一键算 · 看板 ═══════════════════ */
+const BOARD_NETS = [
+  { name: "义乌稠江", rows: 1247 },
+  { name: "丽水缙云", rows: 473 },
+  { name: "诸暨宏程", rows: 704 },
+  { name: "金东三部", rows: 3568 },
+  { name: "金华婺城", rows: 7169 },
+  { name: "希音义乌揽", rows: 54476 }
+];
+const BOARD_AREAS = [
+  { area: "华东", provinces: ["浙江省", "安徽省", "江苏省", "上海市"] },
+  { area: "偏远", provinces: ["甘肃省", "海南省", "内蒙古自治区", "宁夏回族自治区"] },
+  { area: "外围二区", provinces: ["北京市", "福建省", "广东省", "河北省"] },
+  { area: "外围三区", provinces: ["广西壮族自治区", "贵州省", "黑龙江省", "重庆市"] }
+];
+const BOARD_BANDS = ["0-60", "60-150", "150-300", "300-500", "500-800", "800+"];
+const BAND_VOLUME = [0.62, 0.18, 0.10, 0.05, 0.03, 0.02];
+const BAND_PRICE = [0.48, 0.42, 0.38, 0.33, 0.29, 0.25];
+const BAND_DISC = [0.862, 0.851, 0.844, 0.833, 0.821, 0.809];
+
+const boardState = {
+  nets: new Set(["义乌稠江", "丽水缙云"]),
+  excl: "不剔除",
+  src: "普通物品",
+  range: "本月",
+  from: "2026-10-01",
+  to: "2026-10-31",
+  dims: ["省份"],
+  dimValues: { 省份: [], 网点: [] },
+  compareMetrics: new Set(["discount"]),
+  compareType: "line",
+  features: new Set(["flow", "discount", "price"])
+};
+
+function hashStr(text) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < text.length; i += 1) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h >>> 0;
+}
+
+function mulberry32(seed) {
+  let a = seed;
+  return function next() {
+    a |= 0;
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// 演示数据：按口径确定性生成，同一组参数结果稳定；底层同时生成 现价/原价/重量，
+// 因此汇总卡的加权值（Σ现价÷Σ原价、Σ现价÷Σ重量）与明细完全自洽。
+function boardSlice(netName) {
+  const s = boardState;
+  const net = BOARD_NETS.find((item) => item.name === netName) ?? BOARD_NETS[0];
+  const rnd = mulberry32(hashStr(`${netName}|${s.excl}|${s.src}|${s.from}|${s.to}`));
+  const totalWeight = 9000 + rnd() * 18000;
+  const provinces = BOARD_AREAS.flatMap((group) =>
+    group.provinces.map((name) => ({ area: group.area, name, w: 0.35 + rnd() }))
+  );
+  const wsum = provinces.reduce((acc, item) => acc + item.w, 0);
+
+  const bandAgg = BOARD_BANDS.map(() => ({ vol: 0, price: 0, orig: 0 }));
+  const rows = provinces.map((province) => {
+    const provWeight = totalWeight * (province.w / wsum);
+    const cells = BOARD_BANDS.map((band, index) => {
+      let vol = provWeight * BAND_VOLUME[index] * (0.55 + rnd() * 0.9);
+      if (vol < 1.2) vol = 0;
+      const unit = BAND_PRICE[index] * (0.88 + rnd() * 0.24);
+      const price = vol * unit;
+      const disc = Math.min(0.99, BAND_DISC[index] * (0.94 + rnd() * 0.12));
+      const orig = price / disc;
+      bandAgg[index].vol += vol;
+      bandAgg[index].price += price;
+      bandAgg[index].orig += orig;
+      return { vol, price, orig, disc, unit };
+    });
+    return { ...province, cells };
+  });
+
+  const sumVol = bandAgg.reduce((acc, item) => acc + item.vol, 0);
+  const sumPrice = bandAgg.reduce((acc, item) => acc + item.price, 0);
+  const sumOrig = bandAgg.reduce((acc, item) => acc + item.orig, 0);
+  const discCells = rows.flatMap((row) => row.cells.filter((c) => c.vol > 0).map((c) => c.disc));
+  const priceCells = rows.flatMap((row) => row.cells.filter((c) => c.vol > 0).map((c) => c.unit));
+  const avg = (list) => (list.length ? list.reduce((a, b) => a + b, 0) / list.length : 0);
+
+  const sourceFactor = s.src === "审报物品" ? 0.34 : 0.82;
+  const keptRows = Math.round(net.rows * 0.547 * sourceFactor);
+  const droppedRows = Math.round(net.rows * 0.453 * sourceFactor);
+
+  return {
+    name: net.name,
+    rows,
+    bandAgg,
+    sumVol,
+    sumPrice,
+    sumOrig,
+    weightedDisc: sumOrig > 0 ? sumPrice / sumOrig : 0,
+    weightedUnit: sumVol > 0 ? sumPrice / sumVol : 0,
+    simpleDisc: avg(discCells),
+    simpleUnit: avg(priceCells),
+    hitRows: s.excl === "剔除" ? droppedRows : keptRows,
+    notCounted: s.excl === "剔除" ? keptRows : droppedRows,
+    netRows: net.rows
+  };
+}
+
+const fmtVol = (v) =>
+  v > 0 ? v.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : "";
+const fmtPctOf = (v, total) => (v > 0 && total > 0 ? ((v / total) * 100).toFixed(2) + "%" : "");
+const fmt3 = (v) => (v > 0 ? v.toFixed(3) : "");
+
+function renderBoardScope(data) {
+  const s = boardState;
+  const pct = data.netRows > 0 ? ((data.notCounted / data.netRows) * 100).toFixed(1) : "0";
+  const netsLabel =
+    data.names.length === 1 ? data.names[0] : `${data.names.length} 个网点合计（${data.names.join("、")}）`;
+  const parts = [];
+  if (s.excl === "全部") {
+    parts.push("是否剔除：不剔除 + 剔除（两项都算）");
+  } else {
+    parts.push(
+      `未计入：${s.excl === "剔除" ? "不剔除" : "剔除"}件 ${data.notCounted.toLocaleString()} 行（${pct}%）`
+    );
+  }
+  if (s.src === "全部") parts.push("物品来源：普通物品 + 审报物品（两项都算）");
+  $("#board-scope").innerHTML = `
+    <span>口径：<b>${netsLabel}</b> · <b>${s.excl}</b> · <b>${s.src}</b> · <b>${s.from} ~ ${s.to}</b></span>
+    <span>命中 <b>${data.hitRows.toLocaleString()}</b> 行 / 所选网点 ${data.netRows.toLocaleString()} 行</span>
+    <span>${parts.join(" · ")}</span>`;
+}
+
+function flowSection(data) {
+  const head = `
+    <tr>
+      <th class="col-area sticky1" rowspan="2" colspan="2">${data.dimLabel}</th>
+      ${BOARD_BANDS.map((band) => `<th class="band-group" colspan="2">${band}</th>`).join("")}
+    </tr>
+    <tr>${BOARD_BANDS.map(() => `<th class="num">货量</th><th class="num">占比</th>`).join("")}</tr>`;
+  const body = data.rows
+    .map(
+      (row) => `
+    <tr>
+      <td class="col-area sticky1" colspan="2">${row.label}</td>
+      ${row.cells
+        .map(
+          (cell, index) => `
+        <td class="num${index === 0 ? " band-first" : ""}${cell.vol > 0 ? "" : " blank"}">${
+            fmtVol(cell.vol) || "—"
+          }</td>
+        <td class="num${cell.vol > 0 ? "" : " blank"}">${fmtPctOf(cell.vol, data.sumVol) || "—"}</td>`
+        )
+        .join("")}
+    </tr>`
+    )
+    .join("");
+  const total = `
+    <tr class="total">
+      <td class="sticky1" colspan="2">合计</td>
+      ${data.bandAgg
+        .map(
+          (band, index) => `
+        <td class="num${index === 0 ? " band-first" : ""}">${fmtVol(band.vol)}</td>
+        <td class="num">${fmtPctOf(band.vol, data.sumVol)}</td>`
+        )
+        .join("")}
+    </tr>`;
+  return `
+    <section class="board-section">
+      <div class="board-section-head">
+        <span class="board-section-title">货物流向数据</span>
+        <span class="board-section-sub">结算重量按 省份 × 公斤段 分布</span>
+        <span class="summary-pill"><span class="k">累计货量</span>
+          <span class="v">${fmtVol(data.sumVol)}</span><span class="note">kg</span></span>
+      </div>
+      <div class="matrix-wrap"><table class="matrix"><thead>${head}</thead><tbody>${body}${total}</tbody></table></div>
+    </section>`;
+}
+
+function ratioSection(data, key) {
+  const isDiscount = key === "discount";
+  const title = isDiscount ? "公斤段折扣" : "公斤段单价";
+  const formula = isDiscount ? "现价合计 ÷ 原价合计" : "现价合计 ÷ 结算重量";
+  const summaryLabel = isDiscount ? "综合折扣" : "综合单价";
+  const summaryValue = isDiscount ? data.weightedDisc.toFixed(4) : data.weightedUnit.toFixed(3);
+  const simple = isDiscount ? data.simpleDisc.toFixed(4) : data.simpleUnit.toFixed(3);
+
+  const head = `
+    <tr>
+      <th class="col-area sticky1" colspan="2">${data.dimLabel}</th>
+      ${BOARD_BANDS.map((band) => `<th class="num band-group">${band}</th>`).join("")}
+    </tr>`;
+  const body = data.rows
+    .map(
+      (row) => `
+    <tr>
+      <td class="col-area sticky1" colspan="2">${row.label}</td>
+      ${row.cells
+        .map((cell, index) => {
+          const empty = isDiscount ? cell.vol <= 0 || cell.orig <= 0 : cell.vol <= 0;
+          const text = empty ? "—" : isDiscount ? fmt3(cell.disc) : fmt3(cell.unit);
+          return `<td class="num${index === 0 ? " band-first" : ""}${empty ? " blank" : ""}">${text}</td>`;
+        })
+        .join("")}
+    </tr>`
+    )
+    .join("");
+  const total = `
+    <tr class="total">
+      <td class="sticky1" colspan="2">合计（加权）</td>
+      ${data.bandAgg
+        .map((band, index) => {
+          const value = isDiscount
+            ? band.orig > 0
+              ? band.price / band.orig
+              : 0
+            : band.vol > 0
+              ? band.price / band.vol
+              : 0;
+          return `<td class="num${index === 0 ? " band-first" : ""}">${value > 0 ? fmt3(value) : "—"}</td>`;
+        })
+        .join("")}
+    </tr>`;
+
+  return `
+    <section class="board-section">
+      <div class="board-section-head">
+        <span class="board-section-title">${title}</span>
+        <span class="board-section-sub">${formula}（加权）· Excel 原公式为简单平均（本例 ${simple}）</span>
+        <span class="summary-pill"><span class="k">${summaryLabel}</span>
+          <span class="v">${summaryValue}</span><span class="note">加权</span></span>
+      </div>
+      <div class="matrix-wrap"><table class="matrix"><thead>${head}</thead><tbody>${body}${total}</tbody></table></div>
+    </section>`;
+}
+
+/* 多网点合并：矩阵按「所选网点合计」，对比图表按「每网点一条线」 */
+function buildBoardMerged() {
+  const s = boardState;
+  const names = s.nets.size > 0 ? [...s.nets] : [BOARD_NETS[0].name];
+  const slices = names.map((name) => boardSlice(name));
+
+  const rowMap = new Map();
+  const dims = boardState.dims.length > 0 ? boardState.dims : ["省份"];
+  const bandAgg = BOARD_BANDS.map(() => ({ vol: 0, price: 0, orig: 0 }));
+  slices.forEach((slice) => {
+    const provPick = boardState.dimValues?.省份 ?? [];
+    const netPick = boardState.dimValues?.网点 ?? [];
+    slice.rows.forEach((row) => {
+      if (provPick.length > 0 && !provPick.includes(row.name)) return;
+      if (netPick.length > 0 && !netPick.includes(slice.name)) return;
+      const parts = [];
+      if (dims.includes("网点")) parts.push(slice.name);
+      if (dims.includes("省份")) parts.push(row.name);
+      const label = parts.length > 0 ? parts.join(" · ") : "全部";
+      if (!rowMap.has(label)) {
+        rowMap.set(label, {
+          label,
+          cells: BOARD_BANDS.map(() => ({ vol: 0, price: 0, orig: 0 }))
+        });
+      }
+      const acc = rowMap.get(label);
+      row.cells.forEach((cell, i) => {
+        acc.cells[i].vol += cell.vol;
+        acc.cells[i].price += cell.price;
+        acc.cells[i].orig += cell.orig;
+        bandAgg[i].vol += cell.vol;
+        bandAgg[i].price += cell.price;
+        bandAgg[i].orig += cell.orig;
+      });
+    });
+  });
+
+  const rows = [...rowMap.values()].map((row) => ({
+    ...row,
+    cells: row.cells.map((cell) => ({
+      ...cell,
+      disc: cell.orig > 0 ? cell.price / cell.orig : 0,
+      unit: cell.vol > 0 ? cell.price / cell.vol : 0
+    }))
+  }));
+
+  const sumVol = bandAgg.reduce((a, b) => a + b.vol, 0);
+  const sumPrice = bandAgg.reduce((a, b) => a + b.price, 0);
+  const sumOrig = bandAgg.reduce((a, b) => a + b.orig, 0);
+  const discCells = rows.flatMap((row) => row.cells.filter((c) => c.vol > 0).map((c) => c.disc));
+  const priceCells = rows.flatMap((row) => row.cells.filter((c) => c.vol > 0).map((c) => c.unit));
+  const avg = (list) => (list.length ? list.reduce((a, b) => a + b, 0) / list.length : 0);
+
+  const sourceFactor = s.src === "全部" ? 1 : s.src === "审报物品" ? 0.34 : 0.82;
+  const exclFactor = s.excl === "全部" ? 1 : s.excl === "剔除" ? 0.453 : 0.547;
+  const netRows = names.reduce(
+    (acc, name) => acc + (BOARD_NETS.find((n) => n.name === name)?.rows ?? 0),
+    0
+  );
+  const hitRows = Math.round(netRows * exclFactor * sourceFactor);
+
+  return {
+    rows,
+    dimLabel: (boardState.dims.length > 0 ? boardState.dims : ["省份"]).join(" × "),
+    bandAgg,
+    sumVol,
+    sumPrice,
+    sumOrig,
+    weightedDisc: sumOrig > 0 ? sumPrice / sumOrig : 0,
+    weightedUnit: sumVol > 0 ? sumPrice / sumVol : 0,
+    simpleDisc: avg(discCells),
+    simpleUnit: avg(priceCells),
+    hitRows,
+    notCounted: Math.max(0, netRows - hitRows),
+    netRows,
+    names,
+    slices,
+    mixed: s.excl === "全部" || s.src === "全部"
+  };
+}
+
+const COMPARE_COLORS = ["#6f9fd8", "#7fb98a", "#d3a86a", "#a98bc9", "#c98b8b", "#79b6bb"];
+
+const COMPARE_METRICS = [
+  { v: "flow", label: "货物流向占比" },
+  { v: "discount", label: "公斤段折扣" },
+  { v: "price", label: "公斤段单价" }
+];
+
+const COMPARE_MAX_ROWS = 6;
+
+function compareValue(cell, rowVolume, metric) {
+  if (metric === "flow") return rowVolume > 0 ? cell.vol / rowVolume : 0;
+  if (metric === "price") return cell.vol > 0 ? cell.price / cell.vol : 0;
+  return cell.orig > 0 ? cell.price / cell.orig : 0;
+}
+
+function compareSection(data) {
+  const active = [...boardState.compareMetrics];
+  const metrics = active.length > 0 ? active : ["discount"];
+
+  // 按当前「分组维度」取前 N 组（默认按货量排序），保证图表与表格同口径
+  const ordered = [...data.rows]
+    .map((row) => ({ row, volume: row.cells.reduce((a, c) => a + c.vol, 0) }))
+    .sort((a, b) => b.volume - a.volume);
+  const picked = ordered.slice(0, COMPARE_MAX_ROWS);
+  const truncated = ordered.length - picked.length;
+
+  const series = [];
+  picked.forEach((entry) => {
+    metrics.forEach((metric) => {
+      series.push({
+        name: `${entry.row.label} · ${COMPARE_METRICS.find((m) => m.v === metric)?.label ?? metric}`,
+        color: COMPARE_COLORS[series.length % COMPARE_COLORS.length],
+        values: entry.row.cells.map((cell) => compareValue(cell, entry.volume, metric))
+      });
+    });
+  });
+
+  const allValues = series.flatMap((s) => s.values).filter((v) => Number.isFinite(v));
+  const min = allValues.length ? Math.min(...allValues) : 0;
+  const max = allValues.length ? Math.max(...allValues) : 1;
+  const pad = (max - min) * 0.18 || 0.01;
+  const yMin = min - pad;
+  const yMax = max + pad;
+
+  const w = 660, h = 330, padL = 58, padB = 44, padT = 18;
+  const px = (i) => padL + (i / (BOARD_BANDS.length - 1)) * (w - padL - 20);
+  const py = (v) => h - padB - ((v - yMin) / (yMax - yMin)) * (h - padB - padT);
+
+  const grid = [0, 0.25, 0.5, 0.75, 1]
+    .map((t) => {
+      const value = yMin + (yMax - yMin) * t;
+      const y = py(value).toFixed(1);
+      return `<line x1="${padL}" y1="${y}" x2="${w - 8}" y2="${y}" stroke="var(--color-border-soft)" opacity=".6"></line>
+        <text x="${padL - 8}" y="${Number(y) + 3}" font-size="9" fill="var(--color-text-tertiary)" text-anchor="end">${value.toFixed(3)}</text>`;
+    })
+    .join("");
+
+  const type = boardState.compareType ?? "line";
+  let drawing = "";
+  if (type === "pie") {
+    const data = picked.map((entry) => entry.volume);
+    const total = data.reduce((a, b) => a + b, 0) || 1;
+    const cx = w / 2;
+    const cy = h / 2 - 6;
+    const radius = Math.min(w, h) / 3.2;
+    let angle = -Math.PI / 2;
+    drawing = data
+      .map((value, i) => {
+        const slice = (value / total) * Math.PI * 2;
+        const x1 = cx + radius * Math.cos(angle);
+        const y1 = cy + radius * Math.sin(angle);
+        const mid = angle + slice / 2;
+        angle += slice;
+        const x2 = cx + radius * Math.cos(angle);
+        const y2 = cy + radius * Math.sin(angle);
+        const large = slice > Math.PI ? 1 : 0;
+        const rawLabel = picked[i].row.label;
+        const short = rawLabel.length > 7 ? rawLabel.slice(0, 7) : rawLabel;
+        const lx = cx + radius * 0.62 * Math.cos(mid);
+        const ly = cy + radius * 0.62 * Math.sin(mid);
+        return `<path d="M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} A${radius},${radius} 0 ${large} 1 ${x2.toFixed(1)},${y2.toFixed(1)} Z"
+          fill="${COMPARE_COLORS[i % COMPARE_COLORS.length]}" opacity=".9"></path>
+          <text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="9" fill="#ffffff"
+            text-anchor="middle" style="paint-order:stroke;stroke:rgba(0,0,0,.25);stroke-width:2px">${short}</text>`;
+      })
+      .join("");
+  } else if (type === "bar") {
+    const groupWidth = (w - padL - 20) / BOARD_BANDS.length;
+    const barWidth = Math.max(3, (groupWidth - 10) / Math.max(series.length, 1));
+    drawing = series
+      .map((s, si) =>
+        s.values
+          .map((value, i) => {
+            const v = Number.isFinite(value) ? value : yMin;
+            const x = padL + i * groupWidth + 5 + si * barWidth;
+            const y = py(v);
+            return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(barWidth - 0.8).toFixed(1)}"
+              height="${Math.max(h - padB - y, 0).toFixed(1)}" rx="2" fill="${s.color}" opacity=".85"></rect>`;
+          })
+          .join("")
+      )
+      .join("");
+  } else if (type === "scatter") {
+    drawing = series
+      .map((s) =>
+        s.values
+          .map(
+            (value, i) =>
+              `<circle cx="${px(i).toFixed(1)}" cy="${py(Number.isFinite(value) ? value : yMin).toFixed(1)}" r="4" fill="${s.color}" opacity=".85"></circle>`
+          )
+          .join("")
+      )
+      .join("");
+  } else {
+    drawing = series
+      .map((s) => {
+        const points = s.values
+          .map((value, i) => `${px(i).toFixed(1)},${py(Number.isFinite(value) ? value : yMin).toFixed(1)}`)
+          .join(" ");
+        const dots = s.values
+          .map(
+            (value, i) =>
+              `<circle cx="${px(i).toFixed(1)}" cy="${py(Number.isFinite(value) ? value : yMin).toFixed(1)}" r="3" fill="${s.color}"></circle>`
+          )
+          .join("");
+        return `<polyline points="${points}" fill="none" stroke="${s.color}" stroke-width="2"></polyline>${dots}`;
+      })
+      .join("");
+  }
+
+  const xLabels = BOARD_BANDS.map(
+    (band, i) =>
+      `<text x="${px(i)}" y="${h - padB + 16}" font-size="10" fill="var(--color-text-tertiary)" text-anchor="middle">${band}</text>`
+  ).join("");
+
+  const legend =
+    type === "pie"
+      ? picked
+          .map((entry, i) => {
+            const data = picked.map((item) => item.volume);
+            const total = data.reduce((a, b) => a + b, 0) || 1;
+            return `<span><i style="background:${COMPARE_COLORS[i % COMPARE_COLORS.length]}"></i>${entry.row.label} ${(
+              (data[i] / total) *
+              100
+            ).toFixed(1)}%</span>`;
+          })
+          .join("")
+      : series.map((s) => `<span><i style="background:${s.color}"></i>${s.name}</span>`).join("");
+  const axes =
+    type === "pie"
+      ? ""
+      : `${grid}<line x1="${padL}" y1="${h - padB}" x2="${w - 8}" y2="${h - padB}" stroke="var(--color-border)"></line>`;
+  const axisLabels = type === "pie" ? "" : xLabels;
+
+  const typeChips = [
+    { v: "line", label: "折线" },
+    { v: "bar", label: "柱状" },
+    { v: "pie", label: "饼图" },
+    { v: "scatter", label: "散点" }
+  ]
+    .map(
+      (item) =>
+        `<button class="cmetric ${type === item.v ? "on" : ""}" data-ctype="${item.v}">
+          <span class="tick">${type === item.v ? "✓" : ""}</span>${item.label}</button>`
+    )
+    .join("");
+
+  const chips = COMPARE_METRICS.map(
+    (metric) =>
+      `<button class="cmetric ${metrics.includes(metric.v) ? "on" : ""}" data-cmetric="${metric.v}">
+        <span class="tick">${metrics.includes(metric.v) ? "✓" : ""}</span>${metric.label}</button>`
+  ).join("");
+
+  return `
+    <section class="board-section">
+      <div class="board-section-head">
+        <span class="board-section-title">网点对比图表</span>
+        <span class="board-section-sub">${
+          type === "pie"
+            ? `饼图 · 按「${data.dimLabel}」构成（只用第一个对比指标）`
+            : `X = 公斤段；每条折线 = 「${data.dimLabel}」分组 × 指标`
+        }${truncated > 0 ? ` · 仅显示货量前 ${COMPARE_MAX_ROWS} 组（含 ${truncated} 组未显示）` : ""}</span>
+      </div>
+      <div class="board-features" style="background:transparent;border-bottom:none;padding:8px 14px 0">
+        <span class="tiny">对比指标</span>${chips}
+      </div>
+      <div class="board-features" style="background:transparent;border-bottom:none;padding:6px 14px 0">
+        <span class="tiny">图表样式</span>${typeChips}
+      </div>
+      <div class="chart-legend" style="padding:8px 14px 0">${legend}</div>
+      <div style="padding:6px 14px 14px">
+        <svg viewBox="0 0 ${w} ${h}" width="100%" style="max-height:330px">
+          ${axes}
+          ${drawing}${axisLabels}
+          ${type === "pie" ? "" : `<text x="${padL}" y="${h - 8}" font-size="9" fill="var(--color-text-tertiary)">公斤段</text>`}
+        </svg>
+      </div>
+    </section>`;
+}
+
+document.addEventListener("click", (event) => {
+  const typeBtn = event.target.closest("[data-ctype]");
+  if (typeBtn) {
+    boardState.compareType = typeBtn.dataset.ctype;
+    renderBoard();
+    return;
+  }
+  const chip = event.target.closest("[data-cmetric]");
+  if (!chip) return;
+  const value = chip.dataset.cmetric;
+  if (boardState.compareMetrics.has(value)) {
+    if (boardState.compareMetrics.size === 1) return;
+    boardState.compareMetrics.delete(value);
+  } else {
+    boardState.compareMetrics.add(value);
+  }
+  renderBoard();
+});
+
+function renderBoard() {
+  const data = buildBoardMerged();
+  renderBoardScope(data);
+
+  $$(".feature").forEach((btn) => {
+    const on = boardState.features.has(btn.dataset.feature);
+    btn.classList.toggle("on", on);
+    btn.querySelector(".tick").textContent = on ? "✓" : "";
+  });
+
+  const host = $("#board-body");
+  const picked = ["flow", "discount", "price", "compare"].filter((key) =>
+    boardState.features.has(key)
+  );
+  if (picked.length === 0) {
+    host.innerHTML = `<div class="board-empty">已取消全部计算功能<br /><span class="tiny">请选择至少一项后查看结果</span></div>`;
+    return;
+  }
+  host.innerHTML = picked
+    .map((key) => {
+      if (key === "flow") return flowSection(data);
+      if (key === "compare") return compareSection(data);
+      return ratioSection(data, key);
+    })
+    .join("");
+}
+
+function applyBoardRange() {
+  const presets = {
+    本月: ["2026-10-01", "2026-10-31"],
+    上月: ["2026-09-01", "2026-09-30"]
+  };
+  const pair = presets[boardState.range];
+  const custom = boardState.range === "自定义";
+  $("#b-from").disabled = !custom;
+  $("#b-to").disabled = !custom;
+  if (pair) {
+    boardState.from = pair[0];
+    boardState.to = pair[1];
+    $("#b-from").value = pair[0];
+    $("#b-to").value = pair[1];
+  }
+}
+
+/* 网点多选（含全部） */
+function renderNetLabel() {
+  const names = [...boardState.nets];
+  $("#b-net-label").textContent =
+    names.length === 0 || names.length === BOARD_NETS.length
+      ? "全部网点（6）"
+      : names.length === 1
+        ? names[0]
+        : `${names[0]} 等 ${names.length} 个`;
+}
+
+function openNetPicker(anchor) {
+  hideCtx();
+  const pop = document.createElement("div");
+  pop.className = "net-picker";
+  pop.innerHTML = `
+    <div class="picker-list">
+      <label class="picker-item"><input type="checkbox" data-all="1" ${boardState.nets.size === BOARD_NETS.length ? "checked" : ""} />
+        <span>全部网点</span></label>
+      ${BOARD_NETS.map(
+        (net) => `<label class="picker-item"><input type="checkbox" value="${net.name}" ${
+          boardState.nets.has(net.name) ? "checked" : ""
+        } /><span>${net.name}</span><span class="dtype">${net.rows.toLocaleString()} 行</span></label>`
+      ).join("")}
+    </div>
+    <div class="picker-foot">
+      <span class="tiny">可多选对比</span><span style="flex:1"></span>
+      <button class="btn btn-primary" data-net-ok>完成</button>
+    </div>`;
+  const rect = anchor.getBoundingClientRect();
+  pop.style.left = Math.min(rect.left, window.innerWidth - 270) + "px";
+  pop.style.top = Math.min(rect.bottom + 4, window.innerHeight - 300) + "px";
+  document.body.appendChild(pop);
+
+  const boxes = () => Array.from(pop.querySelectorAll('input[type="checkbox"]'));
+  const sync = () => {
+    const all = pop.querySelector("[data-all]");
+    const others = boxes().filter((b) => !b.dataset.all);
+    all.checked = others.every((b) => b.checked);
+  };
+  pop.querySelector("[data-all]").addEventListener("change", (event) => {
+    boxes()
+      .filter((b) => !b.dataset.all)
+      .forEach((b) => {
+        b.checked = event.target.checked;
+      });
+  });
+  boxes()
+    .filter((b) => !b.dataset.all)
+    .forEach((b) => b.addEventListener("change", sync));
+  pop.querySelector("[data-net-ok]").addEventListener("click", () => {
+    const picked = boxes()
+      .filter((b) => !b.dataset.all && b.checked)
+      .map((b) => b.value);
+    boardState.nets = new Set(picked);
+    pop.remove();
+    renderNetLabel();
+    renderBoard();
+  });
+  pop.addEventListener("click", (event) => event.stopPropagation());
+}
+
+$("#b-net-btn").addEventListener("click", (event) => {
+  event.stopPropagation();
+  openNetPicker($("#b-net-btn"));
+});
+renderNetLabel();
+
+$("#board-export-btn").addEventListener("click", (event) => {
+  event.stopPropagation();
+  const menu = $("#board-export-menu");
+  const willOpen = menu.hidden;
+  closeFlyouts();
+  menu.hidden = !willOpen;
+});
+$("#board-export-menu").addEventListener("click", (event) => {
+  const btn = event.target.closest("[data-bexport]");
+  if (!btn) return;
+  const [format, scope] = btn.dataset.bexport.split(":");
+  closeFlyouts();
+  const picked = ["flow", "discount", "price", "compare"].filter((key) =>
+    boardState.features.has(key)
+  );
+  if (picked.length === 0) {
+    toast("请先选择至少一个计算功能");
+    return;
+  }
+  const count = scope === "all" ? 4 : picked.length;
+  const parts = format === "xlsx" ? `${count} 个 Sheet` : count > 1 ? `${count} 页` : "1 页";
+  toast(`演示：已导出 ${format.toUpperCase()}（${scope === "all" ? "全部功能" : "当前视图"}，${parts}）`);
+});
+
+[["#b-excl", "excl"], ["#b-src", "src"], ["#b-range", "range"]].forEach(([selector, key]) => {
+  $$(`${selector} button`).forEach((btn) =>
+    btn.addEventListener("click", () => {
+      boardState[key] = btn.dataset.v;
+      $$(`${selector} button`).forEach((item) => item.classList.toggle("on", item === btn));
+      if (key === "range") applyBoardRange();
+      renderBoard();
+    })
+  );
+});
+
+$("#b-from").addEventListener("change", (event) => {
+  boardState.from = event.target.value;
+  renderBoard();
+});
+$("#b-to").addEventListener("change", (event) => {
+  boardState.to = event.target.value;
+  renderBoard();
+});
+
+$$(".feature").forEach((btn) =>
+  btn.addEventListener("click", () => {
+    const key = btn.dataset.feature;
+    if (key === "compare") {
+      boardState.features = new Set(["compare"]);
+    } else {
+      const next = new Set(boardState.features);
+      next.delete("compare");
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      if (next.size === 0) next.add(key);
+      boardState.features = next;
+    }
+    renderBoard();
+  })
+);
+
+const DIM_OPTIONS = [
+  { group: "单维度", items: [{ v: "省份", label: "省份" }, { v: "网点", label: "网点" }] },
+  { group: "组合维度", items: [{ v: "网点,省份", label: "网点 × 省份" }] }
+];
+
+function renderDimLabel() {
+  const value = boardState.dims.join(",");
+  const found = DIM_OPTIONS.flatMap((group) => group.items).find((item) => item.v === value);
+  $("#b-dims-label").textContent = found ? found.label : value;
+}
+
+function openDimPicker(anchor) {
+  hideCtx();
+  const pop = document.createElement("div");
+  pop.className = "picker";
+  pop.style.width = "254px";
+
+  const renderBody = () => {
+    const current = boardState.dims.join(",");
+    const sources = [];
+    if (boardState.dims.includes("省份")) {
+      sources.push({ key: "省份", values: BOARD_AREAS.flatMap((group) => group.provinces) });
+    }
+    if (boardState.dims.includes("网点")) {
+      sources.push({ key: "网点", values: BOARD_NETS.map((net) => net.name) });
+    }
+
+    pop.innerHTML = `
+      <div class="tiny" style="padding:2px 4px 6px">一级：分组维度</div>
+      <div class="picker-list" style="max-height:112px">
+        ${DIM_OPTIONS.flatMap((group) => group.items)
+          .map(
+            (item) =>
+              `<label class="picker-item"><input type="radio" name="bdim" value="${item.v}" ${
+                current === item.v ? "checked" : ""
+              } /><span>${item.label}</span></label>`
+          )
+          .join("")}
+      </div>
+      <div style="height:1px;background:var(--color-border-soft);margin:6px 2px"></div>
+      <div class="tiny" style="padding:0 4px 6px">二级：勾选取值（不勾 = 全部）</div>
+      ${sources
+        .map(
+          (source) => `
+        <div class="tiny" style="padding:2px 4px">${source.key}</div>
+        <div class="picker-list" style="max-height:124px">
+          ${source.values
+            .map(
+              (value) =>
+                `<label class="picker-item"><input type="checkbox" data-bdim-value="${source.key}|${value}" ${
+                  (boardState.dimValues?.[source.key] ?? []).includes(value) ? "checked" : ""
+                } /><span>${value}</span></label>`
+            )
+            .join("")}
+        </div>`
+        )
+        .join("")}
+      <div class="picker-foot">
+        <button class="btn btn-ghost" data-bdim-clear>清空取值</button>
+        <span style="flex:1"></span>
+        <button class="btn btn-primary" data-bdim-ok>确定</button>
+      </div>`;
+
+    pop.querySelectorAll('input[name="bdim"]').forEach((radio) =>
+      radio.addEventListener("change", () => {
+        boardState.dims = radio.value.split(",");
+        renderDimLabel();
+        renderBody();
+      })
+    );
+    pop.querySelector("[data-bdim-clear]").addEventListener("click", () => {
+      pop.querySelectorAll("[data-bdim-value]").forEach((box) => {
+        box.checked = false;
+      });
+    });
+    pop.querySelector("[data-bdim-ok]").addEventListener("click", () => {
+      const next = { 省份: [], 网点: [] };
+      pop.querySelectorAll("[data-bdim-value]").forEach((box) => {
+        if (!box.checked) return;
+        const [key, value] = box.dataset.bdimValue.split("|");
+        next[key].push(value);
+      });
+      boardState.dimValues = next;
+      pop.remove();
+      renderBoard();
+    });
+  };
+
+  renderBody();
+  const rect = anchor.getBoundingClientRect();
+  pop.style.left = Math.min(rect.left, window.innerWidth - 274) + "px";
+  pop.style.top = Math.min(rect.bottom + 4, window.innerHeight - 470) + "px";
+  document.body.appendChild(pop);
+  pop.addEventListener("click", (event) => event.stopPropagation());
+}
+
+$("#b-dims-btn").addEventListener("click", (event) => {
+  event.stopPropagation();
+  openDimPicker(event.currentTarget);
+});
+renderDimLabel();
+
+$("#ws-board").addEventListener("click", () => go("board"));
+$("#board-back").addEventListener("click", () => go(state.project ? "workspace" : "home"));
+
+
+$("#home-new").addEventListener("click", openNewProject);
+$("#home-resume").addEventListener("click", () => go("workspace"));
+
+$("#reset-demo").addEventListener("click", () => {
+  state.project = null;
+  state.analysisDone = false;
+  state.selectedProjects.clear();
+  $("#current-card").hidden = true;
+  $("#home-resume").hidden = true;
+  $("#home-new").className = "btn btn-primary btn-lg";
+  $("#dirty-dot").classList.remove("dirty");
+  $("#save-label").textContent = "已保存";
+  $("#result-empty").hidden = false;
+  $("#result-empty").innerHTML = `<div style="text-align:center">
+      <div style="font-size:13px;color:var(--color-text-secondary)">尚未计算</div>
+      <div class="tiny" style="margin-top:4px">左侧确认配置后点击「开始计算」</div>
+    </div>`;
+  $("#result-table").hidden = true;
+  $("#result-chart").hidden = true;
+  go("home");
+  toast("演示已重置");
+});
+
+document.addEventListener("keydown", (e) => {
+  const mod = e.ctrlKey || e.metaKey;
+  if (e.key === "Escape") { closeDialog(); closeFlyouts(); hideCtx(); return; }
+  if (mod && e.key.toLowerCase() === "s") { e.preventDefault(); if (state.project) saveProject(); else toast("请先创建或打开项目"); }
+  if (mod && e.key.toLowerCase() === "f") {
+    if (state.page === "workspace") { e.preventDefault(); $("#quick-filter").focus(); }
+  }
+  if (mod && e.key.toLowerCase() === "k") { e.preventDefault(); if (state.project) go("analysis"); }
+});
+
+applyBoardRange();
+
+/* ═══════════════════ 全局绑定 ═══════════════════ */
+$$("[data-page]").forEach((btn) => btn.addEventListener("click", () => go(btn.dataset.page)));
+$("#current-card").addEventListener("click", () => { if (state.project) go("workspace"); });
+$("#home-new").addEventListener("click", openNewProject);
+$("#home-resume").addEventListener("click", () => go("workspace"));
+
+$("#reset-demo").addEventListener("click", () => {
+  state.project = null;
+  state.analysisDone = false;
+  state.selectedProjects.clear();
+  $("#current-card").hidden = true;
+  $("#home-resume").hidden = true;
+  $("#home-new").className = "btn btn-primary btn-lg";
+  $("#dirty-dot").classList.remove("dirty");
+  $("#save-label").textContent = "已保存";
+  $("#result-empty").hidden = false;
+  $("#result-empty").innerHTML = `<div style="text-align:center">
+      <div style="font-size:13px;color:var(--color-text-secondary)">尚未计算</div>
+      <div class="tiny" style="margin-top:4px">左侧配置条件与指标后点击「开始计算」</div>
+    </div>`;
+  $("#result-table").hidden = true;
+  $("#chart-panel").hidden = true;
+  go("home");
+  toast("演示已重置");
+});
+
+document.addEventListener("keydown", (e) => {
+  const mod = e.ctrlKey || e.metaKey;
+  if (e.key === "Escape") { closeDialog(); closeFlyouts(); hideCtx(); return; }
+  if (mod && e.key.toLowerCase() === "s") {
+    e.preventDefault();
+    if (state.project) saveProject(); else toast("请先创建或打开项目");
+  }
+  if (mod && e.key.toLowerCase() === "f") {
+    if (state.page === "workspace") { e.preventDefault(); $("#quick-filter").focus(); }
+  }
+  if (mod && e.key.toLowerCase() === "k") {
+    e.preventDefault();
+    if (state.project) go("analysis");
+  }
+});
+
+/* 初始化 */
+$("#mod-1").textContent = /mac/i.test(navigator.platform) ? "⌘" : "Ctrl";
+$("#mod-2").textContent = $("#mod-1").textContent;
+$("#mod-3").textContent = $("#mod-1").textContent;
+$("#quick-filter").value = "";
+renderMergeStep();
+renderGrid();
+renderAnalysisConfig();
+renderUndoState();
+go("home");
+</script>
+</body>
+</html>

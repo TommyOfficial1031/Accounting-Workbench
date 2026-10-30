@@ -1,0 +1,116 @@
+{
+  "result": {
+    "columns": ["账单时间", "公斤段", "货量", "现价合计"],
+    "rows": [
+      ["2026-01-05", "0-1kg", 10, 100],
+      ["2026-01-20", "0-1kg", 20, 200],
+      ["2026-01-05", "1-2kg", 5, 50],
+      ["2026-02-10", "0-1kg", 15, 150]
+    ],
+    "row_count": 4,
+    "meta": {}
+  },
+  "cases": [
+    {
+      "name": "系列字段 + 时间粒度（月）",
+      "chart": {
+        "chart_type": "bar",
+        "x_axis": "账单时间",
+        "y_axis": "货量",
+        "series": "公斤段",
+        "show_fields": [],
+        "sort_by": "x",
+        "sort_order": "asc",
+        "top_n": null,
+        "palette": "default",
+        "title": "",
+        "show_legend": true,
+        "show_data_labels": false,
+        "time_granularity": "month",
+        "aggregation": "sum"
+      },
+      "expected": {
+        "categories": ["2026-01", "2026-02"],
+        "series": [
+          { "name": "0-1kg", "data": [30, 15] },
+          { "name": "1-2kg", "data": [5, null] }
+        ]
+      }
+    },
+    {
+      "name": "多指标 = 多系列（每个指标一条线）",
+      "chart": {
+        "chart_type": "line",
+        "x_axis": "账单时间",
+        "y_axis": "货量",
+        "series": null,
+        "show_fields": ["货量", "现价合计"],
+        "sort_by": "x",
+        "sort_order": "asc",
+        "top_n": null,
+        "palette": "default",
+        "title": "",
+        "show_legend": true,
+        "show_data_labels": false,
+        "time_granularity": null,
+        "aggregation": "sum"
+      },
+      "expected": {
+        "categories": ["2026-01-05", "2026-01-20", "2026-02-10"],
+        "series": [
+          { "name": "货量", "data": [10, 20, 15] },
+          { "name": "现价合计", "data": [100, 200, 150] }
+        ]
+      }
+    },
+    {
+      "name": "多指标 + 时间粒度（月）",
+      "chart": {
+        "chart_type": "line",
+        "x_axis": "账单时间",
+        "y_axis": "货量",
+        "series": null,
+        "show_fields": ["货量", "现价合计"],
+        "sort_by": "x",
+        "sort_order": "asc",
+        "top_n": null,
+        "palette": "default",
+        "title": "",
+        "show_legend": true,
+        "show_data_labels": false,
+        "time_granularity": "month",
+        "aggregation": "sum"
+      },
+      "expected": {
+        "categories": ["2026-01", "2026-02"],
+        "series": [
+          { "name": "货量", "data": [35, 15] },
+          { "name": "现价合计", "data": [350, 150] }
+        ]
+      }
+    },
+    {
+      "name": "show_fields 里有结果表没有的列 → 退回单系列",
+      "chart": {
+        "chart_type": "line",
+        "x_axis": "账单时间",
+        "y_axis": "货量",
+        "series": null,
+        "show_fields": ["现价合计", "不存在的列"],
+        "sort_by": "x",
+        "sort_order": "asc",
+        "top_n": null,
+        "palette": "default",
+        "title": "",
+        "show_legend": true,
+        "show_data_labels": false,
+        "time_granularity": null,
+        "aggregation": "sum"
+      },
+      "expected": {
+        "categories": ["2026-01-05", "2026-01-20", "2026-02-10"],
+        "series": [{ "name": "货量", "data": [10, 20, 15] }]
+      }
+    }
+  ]
+}

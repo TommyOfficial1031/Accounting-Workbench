@@ -1,0 +1,123 @@
+/* 分析页图表：自绘标题 / 画布 / 图例（双击可改名，双击画布放大），照原型 #result-chart */
+
+.preview {
+  height: 480px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  padding: 8px 12px 4px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: text;
+}
+
+.title:hover {
+  background: var(--color-hover);
+}
+
+.titleInput {
+  width: 60%;
+  height: 24px;
+  padding: 0 6px;
+  border: 1px solid var(--color-primary);
+  border-radius: 6px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  outline: none;
+}
+
+.canvas {
+  flex: 1;
+  min-height: 0;
+  overflow-x: auto;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 16px;
+  padding: 2px 12px 10px;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
+
+.legendItem {
+  cursor: text;
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+.legendItem:hover {
+  background: var(--color-hover);
+}
+
+.legendInput {
+  width: 120px;
+  height: 20px;
+  padding: 0 4px;
+  border: 1px solid var(--color-primary);
+  border-radius: 4px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 11px;
+  outline: none;
+}
+
+.zoomMask {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.42);
+}
+
+.zoomCard {
+  width: min(1100px, 92vw);
+  height: min(760px, 86vh);
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  background: var(--color-bg);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+}
+
+.zoomHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.zoomHint {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.zoomBody {
+  flex: 1;
+  min-height: 0;
+  padding: 10px 14px 14px;
+}
+
+.legend { flex: 0 0 auto; }
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 3px;
+  margin-right: 5px;
+  vertical-align: middle;
+  border-radius: 2px;
+}

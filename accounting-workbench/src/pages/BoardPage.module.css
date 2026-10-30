@@ -1,0 +1,730 @@
+/* 一键算 · 看板（对照 _proto/shell-demo.html #view-board 的 .board / .board-params /
+   .board-features / .board-scope / .board-section / table.matrix） */
+
+.page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.sub {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+.headActions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.exportWrap {
+  position: relative;
+}
+
+.mask {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+
+.flyout {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 70;
+  min-width: 210px;
+  padding: 6px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 10px;
+  background: var(--color-bg);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.flyout button {
+  padding: 7px 10px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--color-text);
+  font-size: 12px;
+  text-align: left;
+}
+
+.flyout button:hover {
+  background: var(--color-hover);
+}
+
+/* PDF / JPEG 在「没勾对比图表」或「饼图」时置灰（提示见下方 .hint） */
+.flyout button:disabled {
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+}
+
+.flyout button:disabled:hover {
+  background: none;
+}
+
+.hint {
+  padding: 4px 10px 5px;
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+}
+
+.flyoutSep {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--color-border-soft);
+}
+
+.board {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── 参数行 ── */
+.params {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field > label {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.params :global(.segmented) button {
+  height: 24px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.date {
+  height: 30px;
+  width: 132px;
+  padding: 0 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 12px;
+}
+
+.date:disabled {
+  background: var(--color-bg-sunken);
+  color: var(--color-text-tertiary);
+}
+
+.pickerWrap {
+  position: relative;
+}
+
+.pickerBtn {
+  height: 30px;
+  min-width: 178px;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.picker {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 4px);
+  z-index: 70;
+  /* 网点/维度浮层别伸出窗口（用户 2026-10-28 审计所有下拉） */
+  max-height: 62vh;
+  overflow: auto;
+  width: 262px;
+  padding: 8px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 10px;
+  background: var(--color-bg);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.pickerItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.pickerItem:hover {
+  background: var(--color-hover);
+}
+
+.pickerFoot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 4px 2px;
+  border-top: 1px solid var(--color-border-soft);
+  margin-top: 4px;
+}
+
+/* ── 功能胶囊行 ── */
+.features {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--color-border-soft);
+  background: var(--color-bg-sunken);
+}
+
+.feature,
+.featureOn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 28px;
+  padding: 0 13px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-bg);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.feature:hover {
+  border-color: var(--color-text-tertiary);
+}
+
+.featureOn {
+  border-color: var(--color-primary);
+  background: var(--color-active);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.tick {
+  width: 13px;
+  height: 13px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid currentColor;
+  font-size: 8px;
+  line-height: 1;
+}
+
+.featureOn .tick {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-color: var(--color-primary);
+}
+
+/* 「网点对比图表」推到最右（用户 2026-10-29 定稿：前四个靠左依次排） */
+.featureRight {
+  margin-left: auto;
+}
+
+.cmetric,
+.cmetricOn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 26px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-bg);
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.cmetric:hover {
+  border-color: var(--color-text-tertiary);
+}
+
+.cmetricOn {
+  border-color: var(--color-primary);
+  background: var(--color-active);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.cmetricOn .tick {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-color: var(--color-primary);
+}
+
+/* ── 口径行 ── */
+.scope {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  padding: 7px 16px;
+  border-bottom: 1px solid var(--color-border-soft);
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.scope b {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+/* ── 结果区 ── */
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  /* 勾几个计算功能，就按几等分拉伸到底（用户 2026-10-28 需求 5） */
+  align-content: stretch;
+}
+
+.exportHint {
+  padding: 7px 12px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 8px;
+  background: var(--color-bg-sunken);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.section {
+  border: 1px solid var(--color-border-soft);
+  border-radius: 10px;
+  background: var(--color-bg);
+  overflow: hidden;
+  /* 每个区块等分剩余高度（1 个 = 整屏，2 个 = 各一半，3 个 = 各三分之一） */
+  flex: 1 1 0;
+  min-height: 136px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sectionHead {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+/* 图表区块：内容多高就多高（flex-basis auto + 不压缩），交给外层 .body 滚动 */
+.sectionCharts {
+  flex: 1 0 auto;
+}
+
+.sectionTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.sectionSub {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.pill {
+  margin-left: auto;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--color-active);
+}
+
+/* 汇总表外右上的三个 pill（累计货量 / 综合折扣 / 综合单价） */
+.pillGroup {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.pillFlat {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--color-active);
+}
+
+.pillK {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+}
+
+.pillV {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.pillNote {
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+}
+
+.matrixWrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.matrix {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.matrix th,
+.matrix td {
+  height: 26px;
+  padding: 0 8px;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--color-border-soft);
+  border-right: 1px solid var(--color-border-soft);
+}
+
+.matrix thead th {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  background: var(--color-bg-sunken);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  text-align: center;
+}
+
+.colArea {
+  width: 158px;
+  min-width: 158px;
+  max-width: 158px;
+  text-align: left;
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: var(--color-bg);
+}
+
+.matrix thead .colArea {
+  z-index: 7;
+  background: var(--color-bg-sunken);
+}
+
+.num {
+  text-align: right;
+  width: 62px;
+}
+
+.matrix tbody tr:hover td {
+  background: var(--color-hover);
+}
+
+.matrix tbody tr:hover .colArea {
+  background: var(--color-hover);
+}
+
+.totalRow td {
+  font-weight: 600;
+  background: var(--color-bg-sunken);
+}
+
+.bandGroup {
+  border-left: 1px solid var(--color-border);
+}
+
+.bandFirst {
+  border-left: 1px solid var(--color-border);
+}
+
+.blank {
+  color: var(--color-text-tertiary);
+}
+
+/* ── 对比图表 ── */
+.chipsRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 14px 0;
+}
+
+.warnLine {
+  margin: 6px 14px 0;
+  padding: 6px 10px;
+  border-radius: 7px;
+  background: var(--color-warn-bg);
+  color: var(--color-warn-text);
+  font-size: 11px;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 8px 14px 0;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.legend i {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 5px;
+  border-radius: 2px;
+}
+
+.chartBox {
+  height: 320px;
+  padding: 6px 14px 10px;
+}
+
+/* 拆分视图：3 列自动换行（用户 2026-10-29 定稿：29 组就出 29 张，往下排、可下滑）
+ * 这里的 .section 同款容器是 overflow:hidden，所以要给带图表的区块一个「不压缩」的 flex，
+ * 否则内容被裁掉；外层 .body 负责滚动。 */
+.chartGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 6px 14px 12px;
+}
+
+.chartCell {
+  min-width: 0;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 10px;
+  padding: 8px 8px 2px;
+}
+
+.chartCellTitle {
+  margin-bottom: 2px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.chartCellBody {
+  height: 200px;
+}
+
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 40px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  text-align: center;
+}
+
+.tiny {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.error {
+  font-size: 11px;
+  color: var(--color-danger);
+}
+
+/* ── 双击放大 ── */
+.zoomMask {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.42);
+}
+
+.zoomCard {
+  width: min(1100px, 92vw);
+  height: min(760px, 86vh);
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  background: var(--color-bg);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+}
+
+.zoomHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.zoomBody {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 14px 14px;
+  overflow: auto;
+}
+
+/* 放大弹窗内的图例：与页面内 .legend 同一份数据，色块用 currentColor 取 <i> 的行内 color */
+.zoomLegend {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
+
+.zoomLegend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.zoomLegend i {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.zoomChart {
+  flex: 1 1 0;
+  min-height: 280px;
+}
+
+/* 分组维度：一级（维度）/ 二级（取值）两栏，照原型 .picker.cascade */
+.pickerCascade {
+  width: min(470px, calc(100vw - 32px));
+  flex-direction: row;
+  padding: 0;
+  overflow: hidden;
+  max-height: 62vh;
+}
+
+.cascadeLeft {
+  flex: 0 0 178px;
+  padding: 8px;
+  border-right: 1px solid var(--color-border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.cascadeRight {
+  flex: 1;
+  min-width: 0;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.cascadeHint {
+  padding: 2px 4px 6px;
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+}
+
+.cascadeList {
+  max-height: 216px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.cascadeItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.cascadeItem:hover {
+  background: var(--color-hover);
+}
+
+.cascadeEmpty {
+  padding: 12px 6px;
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+}
+
+.linkBtn {
+  border: none;
+  background: none;
+  color: var(--color-primary);
+  font-size: 12px;
+  padding: 0 2px;
+}
+
+.linkBtn:hover {
+  text-decoration: underline;
+}

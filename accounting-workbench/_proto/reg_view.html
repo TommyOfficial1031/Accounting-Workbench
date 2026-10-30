@@ -1,0 +1,104 @@
+      <!-- ══ 盈亏平衡与折扣分析 ══ -->
+      <section class="view" id="view-regression" hidden>
+        <header class="page-head">
+          <div>
+            <div class="page-title">盈亏平衡与折扣分析</div>
+            <div class="page-sub">放给网点的折扣 ↔ 网点需承诺的货量（P0、P 均按单公斤单价计算，元/kg）</div>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-secondary" data-export="nop">导出 PDF</button>
+            <button class="btn btn-secondary" data-export="nop">导出 JPEG</button>
+          </div>
+        </header>
+
+        <div class="split">
+          <div class="reg-left">
+            <div class="segmented" id="reg-mode"><button class="on" data-mode="manual">手动输入</button><button data-mode="table">表格取数</button></div>
+
+            <div id="reg-manual">
+              <div class="field"><label>转运费原价 P0（元/kg）</label><input class="input" id="reg-p0" value="0.4000" /></div>
+              <div class="field"><label>转运费现价 P（元/kg）</label><input class="input" id="reg-p" value="0.3280" /></div>
+              <div class="field"><label>折扣 d（自动 = P ÷ P0）</label><input class="input" id="reg-d" value="0.820" readonly /></div>
+              <div class="field"><label>中心单公斤操作成本 C（元/kg）*必填</label><input class="input" id="reg-c" value="0.2600" /></div>
+              <div class="field"><label>杂费 B（元/期，可填 0）</label><input class="input" id="reg-b" value="3000" /></div>
+              <div class="field">
+                <label>杂费 B 的口径</label>
+                <div class="segmented" id="reg-bdir"><button class="on" data-dir="cost">中心承担</button><button data-dir="income">网点付中心</button></div>
+                <div class="tiny" id="reg-bdir-note">B 作为固定支出，按货量摊进单价</div>
+              </div>
+              <div class="field"><label>计划承诺货量 Z（kg）</label><input class="input" id="reg-z" value="120000" /></div>
+            </div>
+
+            <div id="reg-table" hidden>
+              <div class="field"><label>数据集</label><select class="input"><option>10月华东区网管账单</option><option>9月华东区网管账单</option></select></div>
+              <div class="card-soft">
+                <div class="kv"><b>转运费</b><span class="chip chip-ok">已找到</span></div>
+                <div class="kv"><b>转运费原价</b><span class="chip chip-ok">已找到</span></div>
+                <div class="kv"><b>收寄站操作费</b><span class="chip chip-ok">已找到</span></div>
+                <div class="kv"><b>收寄站操作费原价</b><span class="chip chip-ok">已找到</span></div>
+              </div>
+              <div class="tiny">P = Σ(转运费 + 收寄站操作费) ÷ Σ结算重量；P0 = Σ(转运费原价 + 收寄站操作费原价) ÷ Σ结算重量</div>
+            </div>
+
+            <div class="acc">
+              <button class="acc-head" data-acc="formula">公式说明 <span>▾</span></button>
+              <div class="acc-body" hidden>
+                <div class="formula">d = P ÷ P0<br/>m = P − C（单公斤边际）<br/>L(Z) = m × Z − B<br/>临界折扣 d* = C ÷ P0<br/>临界货量 Z* = B ÷ m<br/>平衡曲线 d(Z) = (C + B ÷ Z) ÷ P0<br/>临界价 P*(Z) = C + B ÷ Z</div>
+                <div class="tiny">B 口径为「网点付中心」时，上式 B 取负号：L = m×Z + B，此时临界货量变成「最多可承接货量」。</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="reg-right">
+            <div class="summary">
+              <div class="summary-card">
+                <div class="summary-label">临界点（折扣 ↔ 货量）</div>
+                <div class="summary-value" id="reg-out-point">—</div>
+                <div class="summary-note" id="reg-out-point-note">—</div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-label">临界折扣下限 d* = C ÷ P0</div>
+                <div class="summary-value" id="reg-out-dstar">—</div>
+                <div class="summary-note" id="reg-out-dstar-note">—</div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-label">计划货量下的中心利润</div>
+                <div class="summary-value" id="reg-out-profit">—</div>
+                <div class="summary-note" id="reg-out-profit-note">—</div>
+              </div>
+            </div>
+
+            <div class="reg-charts">
+              <div class="card-soft reg-chart-card">
+                <div class="reg-chart-title">折扣 – 承诺货量：平衡曲线</div>
+                <div class="chart-box" id="reg-chart"></div>
+              </div>
+              <div class="card-soft reg-chart-card">
+                <div class="reg-chart-title">利润 – 货量</div>
+                <div class="chart-box" id="reg-chart2"></div>
+              </div>
+            </div>
+
+            <div class="card-soft reg-concl">
+              <div class="reg-concl-head">
+                <b>超过临界货量后的中心利润</b>
+                <span class="tiny" id="reg-concl-hint">—</span>
+              </div>
+              <div class="reg-concl-body">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>超出临界货量</th>
+                      <th class="num">承诺货量（kg）</th>
+                      <th class="num">中心利润（元）</th>
+                      <th class="num">利润率</th>
+                      <th>判定</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reg-concl-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>

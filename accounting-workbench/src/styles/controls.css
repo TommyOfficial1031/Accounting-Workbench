@@ -1,0 +1,302 @@
+/* 原型对照表 → 通用控件样式
+ *
+ * 唯一基准：_proto/shell-demo.html。以下每个类名与原型同名同值，页面模块只写布局。
+ *
+ * | 元素        | 原型取值                                                        |
+ * |-------------|-----------------------------------------------------------------|
+ * | 正文字号    | 14px / 1.5                                                      |
+ * | 页面标题    | .page-title 15px·600；大标题 .page-title-lg 25px·700·.3px       |
+ * | 副标题      | .page-sub 12px，--color-text-tertiary                           |
+ * | 区块标题    | .section-title 13px·600；字段标签 11px                          |
+ * | 按钮        | 高 32px、内边距 0 12px、圆角 8px、13px、gap 6px                  |
+ * | 输入框      | 高 34px、内边距 0 10px、圆角 8px、13px、聚焦 3px 主色光晕        |
+ * | 分段控件    | 外框 2px、按钮高 26px·12px，选中白底 + 0 1px 2px 阴影·600        |
+ * | 卡片        | .card-soft 圆角 10px、内边距 10–12px、边框 --color-border-soft   |
+ * | 表格        | .table 12px、表头 7px 10px 灰底、行高 28px、右列 .num 等宽数字   |
+ * | 提示文字    | .tiny 12px·tertiary；.muted secondary                           |
+ * | 间距        | 8 / 10 / 12 / 14 / 16px（--space-sm / md）                       |
+ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--color-text);
+  white-space: nowrap;
+  font-size: 13px;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.row > .btn {
+  flex: 0 0 auto;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: 600;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.btn-secondary {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-bg-secondary);
+}
+
+.btn-ghost {
+  color: var(--color-text);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--color-hover);
+}
+
+.btn-lg {
+  height: 38px;
+  padding: 0 22px;
+  border-radius: 9px;
+  font-size: 14px;
+}
+
+.btn-icon {
+  width: 28px;
+  padding: 0;
+}
+
+.input:not(select) {
+  appearance: none;
+}
+
+.input {
+  height: 34px;
+  width: 100%;
+  padding: 0 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 13px;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-active);
+}
+
+.input:disabled {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+}
+
+select.input {
+  padding-right: 6px;
+}
+
+textarea.input {
+  height: auto;
+  padding: 6px 10px;
+  line-height: 1.5;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field > label {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.field-inline {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.field-inline .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.muted {
+  color: var(--color-text-secondary);
+}
+
+.tiny {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 8px;
+  background: var(--color-bg-secondary);
+}
+
+.segmented button {
+  height: 26px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.segmented button.on {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+/* 原型 .card-soft：圆角 10、内边距 12、浅底、列向内间距 8 */
+.card-soft {
+  border: 1px solid var(--color-border-soft);
+  border-radius: 10px;
+  background: var(--color-bg-sunken);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 7px 10px;
+  border-right: 1px solid var(--color-border-soft);
+  border-bottom: 1px solid var(--color-border-soft);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table td {
+  height: 28px;
+  padding: 0 10px;
+  border-right: 1px solid var(--color-border-soft);
+  border-bottom: 1px solid var(--color-border-soft);
+  white-space: nowrap;
+}
+
+.table tbody tr {
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.table tbody tr:hover {
+  background: var(--color-hover);
+}
+
+.table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.flyout {
+  position: absolute;
+  z-index: 120;
+  min-width: 168px;
+  padding: 6px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 10px;
+  background: var(--color-bg);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  animation: flyoutIn var(--duration-fast) var(--ease-out);
+}
+
+.flyout button {
+  display: block;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--color-text);
+  font-size: 13px;
+  text-align: left;
+}
+
+.flyout button:hover:not(:disabled) {
+  background: var(--color-hover);
+}
+
+.flyout button:disabled {
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+}
+
+.flyout .sep {
+  height: 1px;
+  margin: 5px 4px;
+  background: var(--color-border-soft);
+}
+
+@keyframes flyoutIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

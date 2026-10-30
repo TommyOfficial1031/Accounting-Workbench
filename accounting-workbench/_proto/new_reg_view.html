@@ -1,0 +1,104 @@
+      <!-- ══ 盈亏平衡与折扣分析 ══ -->
+      <section class="view" id="view-regression" hidden>
+        <header class="page-head">
+          <div>
+            <div class="page-title">盈亏平衡与折扣分析</div>
+            <div class="page-sub">B 是网点付给中心的固定费用（额外纯利润，与货量无关）· 核心：L(Z) = (P − C) × Z + B · P0、P 均为单公斤单价（元/kg）</div>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-secondary" data-export="nop">导出 PDF</button>
+            <button class="btn btn-secondary" data-export="nop">导出 JPEG</button>
+          </div>
+        </header>
+
+        <div class="split">
+          <div class="reg-left">
+            <div class="segmented" id="reg-mode"><button class="on" data-mode="manual">手动输入</button><button data-mode="table">表格取数</button></div>
+
+            <div id="reg-manual">
+              <div class="field"><label>转运费原价 P0（元/kg）</label><input class="input" id="reg-p0" value="0.4000" /></div>
+              <div class="field"><label>转运费现价 P（元/kg）</label><input class="input" id="reg-p" value="0.3280" /></div>
+              <div class="field"><label>折扣 d（自动 = P ÷ P0）</label><input class="input" id="reg-d" value="0.820" readonly /></div>
+
+              <div class="reg-sub-head"><span>中心单公斤成本 C</span><span class="tiny">= 车线成本 + 操作成本</span></div>
+              <div class="field"><label>车线成本（元/kg）</label><input class="input" id="reg-cline" value="0.1800" /></div>
+              <div class="field"><label>操作成本（元/kg）</label><input class="input" id="reg-opcost" value="0.0800" /></div>
+              <div class="field"><label>中心单公斤成本 C（元/kg，自动求和）</label><input class="input" id="reg-c" value="0.2600" readonly /></div>
+
+              <div class="field"><label>杂费 B（元/期，网点付中心，额外纯利润）</label><input class="input" id="reg-b" value="3000" />
+                <div class="tiny">B 与货量无关，直接加到利润上</div>
+              </div>
+              <div class="field"><label>计划承诺货量 Z（kg）</label><input class="input" id="reg-z" value="120000" /></div>
+              <div class="field">
+                <label>议价政策直线（叠加参考，不代表盈亏）</label>
+                <div class="segmented" id="reg-pol"><button class="on" data-pol="on">叠加</button><button data-pol="off">不叠加</button></div>
+                <div class="tiny">过（计划货量，当前折扣），货量每翻倍折扣再下浮</div>
+                <div class="field-inline"><input class="input" id="reg-pol-p" value="5" /><span class="tiny">个百分点</span></div>
+              </div>
+            </div>
+
+            <div id="reg-table" hidden>
+              <div class="card-soft" id="reg-field-check"></div>
+
+              <div class="reg-sub-head"><span>分组筛选条件</span><span class="tiny">取值不勾 = 全部</span></div>
+              <div id="reg-group-rows"></div>
+
+              <div class="reg-sub-head"><span>自动填充</span><span class="tiny">P0 = Σ原价 ÷ Σ结算重量</span></div>
+              <div id="reg-auto"></div>
+
+              <div class="reg-sub-head"><span>中心单公斤成本 C</span><span class="tiny">= Σ车线 + 操作</span></div>
+              <div id="reg-cline-list"></div>
+              <div class="field"><label>操作成本（元/kg）</label><input class="input" id="reg-opcost-table" value="0.0800" /></div>
+            </div>
+
+            <div class="acc">
+              <button class="acc-head" data-acc="formula">公式说明 <span>▾</span></button>
+              <div class="acc-body" hidden>
+                <div class="formula" id="reg-formula">—</div>
+                <div class="tiny">B 是网点付给中心的固定费用，与货量无关，直接计入利润；C = 车线成本 + 操作成本。P ≥ C 时利润随货量线性增长；P &lt; C 时每公斤亏 |m|，做越多亏越多。</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="reg-right">
+            <div class="summary">
+              <div class="summary-card">
+                <div class="summary-label">单公斤利润 m = P − C</div>
+                <div class="summary-value" id="reg-out-margin">—</div>
+                <div class="summary-note" id="reg-out-margin-note">—</div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-label">可接受折扣下限 d* = C ÷ P0</div>
+                <div class="summary-value" id="reg-out-dstar">—</div>
+                <div class="summary-note" id="reg-out-dstar-note">—</div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-label">计划货量下的中心利润</div>
+                <div class="summary-value" id="reg-out-profit">—</div>
+                <div class="summary-note" id="reg-out-profit-note">—</div>
+              </div>
+            </div>
+
+            <div class="reg-charts">
+              <div class="card-soft reg-chart-card">
+                <div class="reg-chart-title">折扣 – 货量：成本线与议价政策</div>
+                <div class="chart-box" id="reg-chart" data-zoom="折扣 – 货量"></div>
+                <div class="tiny" id="reg-pol-note" style="padding:0 10px 8px"></div>
+              </div>
+              <div class="card-soft reg-chart-card">
+                <div class="reg-chart-title">利润 – 货量</div>
+                <div class="chart-box" id="reg-chart2" data-zoom="利润 – 货量"></div>
+              </div>
+            </div>
+
+            <div class="card-soft reg-concl">
+              <div class="reg-concl-head">
+                <b id="reg-concl-title">—</b>
+                <span class="tiny" id="reg-concl-hint">—</span>
+              </div>
+              <div class="reg-concl-body" id="reg-concl-body"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+

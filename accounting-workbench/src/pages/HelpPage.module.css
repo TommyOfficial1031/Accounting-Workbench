@@ -1,0 +1,142 @@
+/* 帮助页（原型 #view-help：.help-wrap / .toc / .help-body） */
+
+.page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.sub {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+.wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.toc {
+  flex: 0 0 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 8px;
+  border-right: 1px solid var(--color-border-soft);
+  overflow: auto;
+}
+
+.toc button {
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  text-align: left;
+}
+
+.toc button:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+/* `on` 是 JSX 里写的字面量类名，必须 :global，否则会被 CSS Module 哈希掉 */
+.toc button:global(.on) {
+  background: var(--color-active);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 20px 24px;
+}
+
+.body h2 {
+  margin-bottom: 12px;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.body h4 {
+  margin: 16px 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.body p,
+.body li {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+}
+
+.body ol {
+  padding-left: 18px;
+}
+
+.body ul {
+  padding-left: 18px;
+  list-style: disc;
+}
+
+.body table {
+  margin-top: 8px;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.body th,
+.body td {
+  padding: 6px 10px;
+  border: 1px solid var(--color-border-soft);
+  text-align: left;
+  color: var(--color-text-secondary);
+}
+
+.body th {
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.body kbd {
+  display: inline-block;
+  min-width: 20px;
+  padding: 1px 5px;
+  border: 1px solid var(--color-border-soft);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  line-height: 16px;
+  text-align: center;
+}
+
+.tiny {
+  margin-top: 10px;
+  font-size: 11px !important;
+  color: var(--color-text-tertiary) !important;
+}

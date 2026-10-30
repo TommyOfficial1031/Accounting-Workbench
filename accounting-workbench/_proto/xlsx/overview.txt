@@ -1,0 +1,17 @@
+file=工作簿1.xlsx size=54858986
+sheets=['数据原表', '看板']
+defined_names=[]
+
+=== sheet '数据原表' dims=A1:AT232916 max_row=232916 max_col=46 ===
+merged=[]
+tables=[] state=visible
+VALIDATION none
+conditional_formatting_ranges=[]
+
+=== sheet '看板' dims=A1:Z36 max_row=36 max_col=26 ===
+merged=['U2:Z2', 'C2:N2', 'O2:T2']
+tables=[] state=visible
+VALIDATION type=list sqref=H1 formula1='"剔除,不剔除"' formula2=None allow_blank=True
+VALIDATION type=list sqref=K1 formula1='"普通物品,审报物品"' formula2=None allow_blank=True
+VALIDATION type=list sqref=B1 formula1='"丽水缙云,义乌稠江,诸暨宏程"' formula2=None allow_blank=True
+conditional_formatting_ranges=[]

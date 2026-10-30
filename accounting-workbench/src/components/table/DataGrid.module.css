@@ -1,0 +1,109 @@
+/* 表格区：网格占满剩余高度，状态条固定在底部（原型 .grid-host + .statusbar） */
+
+.wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 表格密度：用户反馈整表偏大，按 28/32/12 再缩 ~25%（22/26/11），一行多显示几列 */
+.grid {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  --ag-row-height: 22px;
+  --ag-header-height: 26px;
+  --ag-font-size: 11px;
+  --ag-font-family: var(--font-family);
+  --ag-cell-horizontal-padding: 8px;
+  --ag-grid-size: 4px;
+  --ag-header-background-color: var(--color-bg-secondary);
+  --ag-background-color: var(--color-bg);
+  --ag-foreground-color: var(--color-text);
+  --ag-border-color: var(--color-border-soft);
+  --ag-row-border-color: var(--color-border-soft);
+  --ag-odd-row-background-color: transparent;
+  --ag-header-foreground-color: var(--color-text-secondary);
+}
+
+/* ── 选中高亮：类名由 cellClassRules / headerClass 动态挂上，必须是全局类 ── */
+
+.grid :global(.aw-sel-cell) {
+  background: var(--color-active) !important;
+  box-shadow: inset 0 0 0 2px var(--color-primary);
+}
+
+.grid :global(.aw-sel-col) {
+  background: var(--color-active) !important;
+}
+
+.grid :global(.aw-sel-row) {
+  background: var(--color-active) !important;
+}
+
+.grid :global(.aw-sel-header) {
+  background: var(--color-active) !important;
+  color: var(--color-primary) !important;
+  font-weight: 600;
+}
+
+/* 查找命中：淡黄底（原型查找只是隐藏行，这里改成高亮已加载行） */
+.grid :global(.aw-hit) {
+  background: rgba(255, 149, 0, 0.18) !important;
+  box-shadow: inset 0 0 0 1px var(--color-warning);
+}
+
+.grid :global(.aw-rownum) {
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  cursor: pointer;
+  background: var(--color-bg-secondary);
+}
+
+.grid :global(.aw-rownum:hover) {
+  color: var(--color-primary);
+}
+
+.grid :global(.aw-rownum-header) {
+  background: var(--color-bg-secondary);
+}
+
+/* ── 底部状态条（原型 .statusbar：高 28、上边框、浅底、11px 等宽数字） ── */
+
+.statusbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 0 0 auto;
+  height: 28px;
+  padding: 0 14px;
+  border-top: 1px solid var(--color-border-soft);
+  background: var(--color-bg-sunken);
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.selected {
+  max-width: 46%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.detail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.right {
+  display: flex;
+  gap: 14px;
+  margin-left: auto;
+  flex: 0 0 auto;
+}

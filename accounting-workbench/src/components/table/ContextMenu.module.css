@@ -1,0 +1,64 @@
+/* 原型 .ctx：右键菜单（固定定位、圆角 10、阴影、13px） */
+
+.menu {
+  position: fixed;
+  z-index: 120;
+  min-width: 188px;
+  padding: 6px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 10px;
+  background: var(--color-bg);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  animation: ctxIn var(--duration-fast) var(--ease-out);
+}
+
+@keyframes ctxIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--color-text);
+  font-size: 13px;
+  text-align: left;
+}
+
+.item:hover:not(:disabled) {
+  background: var(--color-hover);
+}
+
+.item:disabled {
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+}
+
+.danger {
+  color: var(--color-danger);
+}
+
+.item kbd {
+  border: none;
+  background: none;
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+}
+
+.sep {
+  height: 1px;
+  margin: 5px 4px;
+  background: var(--color-border-soft);
+}
