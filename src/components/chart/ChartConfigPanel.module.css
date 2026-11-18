@@ -1,0 +1,342 @@
+/* 原型 .chart-controls / .chart-row / .chart-label / .y-chip */
+
+.controls {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border-soft);
+  background: var(--color-bg);
+}
+
+/* 原型 .chart-title：整行居中、hover 有底色提示可编辑 */
+.title {
+  width: 100%;
+  padding: 2px 6px 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.title::placeholder {
+  color: var(--color-text-tertiary);
+  font-weight: 400;
+}
+
+.title:hover {
+  background: var(--color-hover);
+}
+
+.title:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: var(--color-bg);
+}
+
+.controls .segmented button {
+  height: 24px;
+  padding: 0 10px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.row:first-child {
+  margin-top: 0;
+}
+
+.label {
+  flex: 0 0 52px;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.xWrap {
+  position: relative;
+}
+
+.xButton {
+  height: 26px;
+  min-width: 156px;
+  max-width: 300px;
+  justify-content: space-between;
+}
+
+.xLabel {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.caret {
+  font-size: 9px;
+  color: var(--color-text-secondary);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
+
+.chipOn {
+  border-color: var(--color-primary);
+  background: var(--color-active);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* X 轴二级级联菜单（原型 .picker.cascade）：左维度 / 右取值
+ *
+ * 浮层用 portal 挂到 body 上（.portal 是 position: fixed）：
+ * 分析页右侧是 overflow:auto 的滚动容器，放里面会被裁掉并把横向滚动条撑出来。
+ */
+.portal {
+  position: fixed;
+  z-index: 400;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 10px;
+  background: var(--color-bg);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  animation: portalIn var(--duration-fast) var(--ease-out);
+  max-height: min(460px, calc(100vh - 24px));
+}
+
+@keyframes portalIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.cascade {
+  display: flex;
+  width: 452px;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+}
+
+.cascadeLeft {
+  flex: 0 0 200px;
+  min-height: 0;
+  padding: 8px;
+  border-right: 1px solid var(--color-border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: auto;
+}
+
+.cascadeRight {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.cascadeHint {
+  padding: 2px 4px 6px;
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+}
+
+.cascadeItem,
+.cascadeItemOn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 6px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--color-text);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cascadeItem:hover {
+  background: var(--color-hover);
+}
+
+.cascadeItemOn {
+  background: var(--color-active);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.cascadeList {
+  flex: 1;
+  min-height: 0;
+  max-height: 220px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+/* 取值太多时的关键字筛选框（真实数据一列可能几十万个取值） */
+.search {
+  height: 26px;
+  margin: 0 0 6px;
+  padding: 0 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 12px;
+}
+
+.search:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-active);
+}
+
+.cascadeEmpty {
+  padding: 10px 6px;
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+}
+
+.cascadeFoot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 2px 0;
+  margin-top: 4px;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.cascadeNote {
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+}
+
+.linkBtn {
+  border: none;
+  background: none;
+  color: var(--color-primary);
+  font-size: 12px;
+  padding: 0 2px;
+}
+
+.linkBtn:hover {
+  text-decoration: underline;
+}
+/* 防止全局 .flyout button 的 padding/字号漏进来（菜单整体更紧凑） */
+.cascade :global(button) {
+  font-size: 12px;
+}
+
+.cascadeItem,
+.cascadeItemOn {
+  padding: 5px 6px;
+  min-height: 26px;
+}
+
+.cascadeFoot {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.cascadeFoot :global(.btn) {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.cascadeNote {
+  white-space: nowrap;
+}
+
+/* ── X 轴多维度叠加（2026-10-28 需求 6）────────────────────────────
+   一级左侧列表：每行 = 字段名 + 组合序号 + 该维度取值数
+   （2026-10-28 第六轮去掉勾选框：点字段名只切二级面板，勾取值才算上轴）
+   （样式全部走变量，颜色不硬编码） */
+.dimRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  color: var(--color-text);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.dimRow:hover {
+  background: var(--color-hover);
+}
+
+.dimRowOn {
+  background: var(--color-active);
+  color: var(--color-primary);
+}
+
+.dimRowActive {
+  box-shadow: inset 2px 0 0 var(--color-primary);
+}
+
+.dimName {
+  flex: 1;
+  min-width: 0;
+  display: block;
+  font-size: 12px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dimOrder {
+  flex: 0 0 auto;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: var(--color-bg);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 15px;
+  text-align: center;
+}
+
+.dimMeta {
+  flex: 0 0 auto;
+  color: var(--color-text-tertiary);
+  font-size: 10px;
+}
+
+.dimRowOn .dimMeta {
+  color: var(--color-primary);
+}
+
+.spacer {
+  flex: 1;
+}

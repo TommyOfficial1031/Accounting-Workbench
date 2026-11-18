@@ -1,0 +1,51 @@
+:root {
+  --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "PingFang SC", "Segoe UI", "Microsoft YaHei", "Source Han Sans SC",
+    "Noto Sans CJK SC", sans-serif;
+
+  --color-bg: #ffffff;
+  --color-bg-secondary: #f5f5f7;
+  --color-bg-sunken: #fafafc;
+  --color-text: #1d1d1f;
+  --color-text-secondary: #6e6e73;
+  --color-text-tertiary: #8e8e93;
+  --color-border: #d2d2d7;
+  --color-border-soft: #e6e6eb;
+  --color-primary: #0071e3;
+  --color-primary-hover: #0077ed;
+  --color-on-primary: #ffffff;
+  --color-danger: #ff3b30;
+  --color-success: #34c759;
+  --color-warning: #ff9500;
+  --color-warn-bg: #fff8ec;
+  --color-warn-text: #8a5a00;
+  --color-overlay: rgba(0, 0, 0, 0.4);
+  --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+  --color-hover: rgba(0, 0, 0, 0.045);
+  --color-active: rgba(0, 113, 227, 0.1);
+
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 40px;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+
+  /* 布局网格：侧边栏宽度、内容留白、圆角与动效时长统一取值 */
+  --sidebar-width: 232px;
+  --sidebar-width-collapsed: 64px;
+  --sidebar-inset: 12px;
+  --sidebar-item-height: 40px;
+  --layout-card-radius: 14px;
+  --layout-gutter: 20px;
+  --handle-size: 22px;
+
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+}

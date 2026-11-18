@@ -1,0 +1,103 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 180px;
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--color-bg-secondary);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.field input,
+.field select {
+  padding: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+}
+
+.previewButton,
+.commitButton {
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: #fff;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.previewButton:disabled,
+.commitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.summary {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.tableWrap {
+  max-height: 240px;
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.table {
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.table th,
+.table td {
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.error {
+  color: var(--color-danger);
+  font-size: 13px;
+}

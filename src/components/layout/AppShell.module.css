@@ -1,0 +1,93 @@
+/* 外层：自绘标题栏 + 主体 */
+.outer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-secondary);
+}
+
+.shell {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  background: var(--color-bg-secondary);
+  overflow: hidden;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  padding: 12px 12px 12px 0;
+  overflow: hidden;
+}
+
+.card {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--layout-card-radius);
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-bg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+/* 侧边栏与内容区交界的折叠热区：只有悬停在这里才浮现按钮 */
+.edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--shell-side-w) - 10px);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  transition: left var(--duration-base) var(--ease-out);
+}
+
+.handle {
+  width: var(--handle-size);
+  height: var(--handle-size);
+  padding: 0;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 999px;
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.edge:hover .handle,
+.handle:focus-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.handle:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.flip {
+  transform: rotate(180deg);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edge,
+  .handle,
+  .flip {
+    transition: none;
+  }
+}

@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+pandas
+numpy
+openpyxl
+xlrd==1.2.0
+chardet
+pyarrow
+pydantic
+matplotlib
+pypdf
+pillow
+xlwt

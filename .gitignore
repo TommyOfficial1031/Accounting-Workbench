@@ -1,0 +1,26 @@
+# ---- dependencies ----
+node_modules/
+.venv/
+venv/
+
+# ---- build output ----
+dist/
+dist-installer/
+target/
+backend/build/
+backend/dist/
+backend/.pyinstaller/
+src-tauri/binaries/*
+
+# ---- caches ----
+__pycache__/
+*.pyc
+.pytest_cache/
+.vite/
+
+# ---- local / temp ----
+.env
+.DS_Store
+*.log
+.build-tmp/
+tmp*/

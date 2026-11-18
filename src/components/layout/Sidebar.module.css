@@ -1,0 +1,259 @@
+.sidebar {
+  --sidebar-w: var(--sidebar-width);
+  position: relative;
+  z-index: 30;
+  flex: 0 0 var(--sidebar-w);
+  width: var(--sidebar-w);
+  display: flex;
+  flex-direction: column;
+  padding: 14px 12px 12px;
+  transition: width var(--duration-base) var(--ease-out),
+    flex-basis var(--duration-base) var(--ease-out),
+    padding var(--duration-base) var(--ease-out);
+}
+
+.collapsed {
+  --sidebar-w: var(--sidebar-width-collapsed);
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+/* ── 品牌区：图标 + 标题比导航文字大一号，整体上移、下方留白收一点 ── */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: calc(var(--sidebar-item-height) + 12px);
+  padding: 0 8px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.collapsed .brand {
+  padding: 0;
+  justify-content: center;
+  gap: 0;
+}
+
+.brandMark {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: block;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: opacity 140ms var(--ease-out);
+}
+
+.brandTitle {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+
+.brandSub {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.collapsed .brandText {
+  opacity: 0;
+  width: 0;
+}
+
+/* ── 导航 ──────────────────────────────────────────────── */
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.itemWrap {
+  position: relative;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: var(--sidebar-item-height);
+  padding: 0 10px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 14px;
+  text-align: left;
+  transition: background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.item:hover {
+  background: var(--color-hover);
+}
+
+.item:active {
+  background: rgba(0, 0, 0, 0.07);
+}
+
+.collapsed .item {
+  gap: 0;
+  padding: 0;
+  justify-content: center;
+}
+
+.itemActive,
+.itemActive:hover {
+  background: var(--color-active);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.itemIcon {
+  flex: 0 0 20px;
+  display: grid;
+  place-items: center;
+}
+
+.label {
+  max-width: 200px;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 140ms var(--ease-out), max-width var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
+}
+
+.collapsed .label {
+  max-width: 0;
+  opacity: 0;
+  transform: translateX(-4px);
+}
+
+/* 折叠态用 title 提示 + 悬停浮层保证可发现性 */
+.collapsed .itemWrap::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(29, 29, 31, 0.92);
+  color: #fff;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+  z-index: 90;
+}
+
+.collapsed .itemWrap:hover::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* ── 浮层菜单 ──────────────────────────────────────────── */
+.menu {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: -4px;
+  min-width: 182px;
+  padding: 6px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  z-index: 80;
+  animation: menuIn 140ms var(--ease-out);
+}
+
+.menuUp {
+  top: auto;
+  bottom: -4px;
+}
+
+@keyframes menuIn {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.menuItem {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 13px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menuItem:hover:not(:disabled) {
+  background: var(--color-hover);
+}
+
+.menuItem:disabled {
+  color: var(--color-text-tertiary);
+}
+
+.menuDivider {
+  height: 1px;
+  margin: 5px 4px;
+  background: var(--color-border-soft);
+}
+
+.menuEmpty {
+  padding: 8px 10px;
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+}
+
+.menuHint {
+  padding: 2px 10px 6px;
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+}
+
+/* ── 底部固定区 ────────────────────────────────────────── */
+.footer {
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .label,
+  .brandText,
+  .menu {
+    transition: none;
+    animation: none;
+  }
+}

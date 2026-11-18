@@ -1,0 +1,171 @@
+/* 导出文件管理页 */
+
+.page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.sub {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+.actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.find {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 7px;
+  background: var(--color-bg);
+  color: var(--color-text-tertiary);
+}
+
+.find input {
+  width: 240px;
+  border: none;
+  background: none;
+  outline: none;
+  color: var(--color-text);
+  font-size: 12px;
+}
+
+.find button {
+  border: none;
+  background: none;
+  color: var(--color-primary);
+  font-size: 12px;
+}
+
+.count {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+.error {
+  padding: 0 16px 8px;
+  color: var(--color-danger);
+  font-size: 12px;
+}
+
+.hint {
+  padding: 0 16px 8px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 0 16px;
+}
+
+.table {
+  width: 100%;
+}
+
+.table td {
+  max-width: 420px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.opHead {
+  width: 220px;
+}
+
+.folder,
+.file {
+  margin-right: 6px;
+}
+
+.time {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.path {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.ops {
+  white-space: nowrap;
+}
+
+.link {
+  margin-right: 10px;
+  border: none;
+  background: none;
+  color: var(--color-primary);
+  font-size: 12px;
+}
+
+.link:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.link:disabled {
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+}
+
+.linkDanger {
+  border: none;
+  background: none;
+  color: var(--color-danger);
+  font-size: 12px;
+}
+
+.linkDanger:hover {
+  text-decoration: underline;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 56px 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.emptyHint {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
