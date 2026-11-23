@@ -24,3 +24,5 @@ __pycache__/
 *.log
 .build-tmp/
 tmp*/
+push.bat
+*.bak
