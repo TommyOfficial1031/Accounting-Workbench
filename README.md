@@ -145,7 +145,7 @@ Tauri 2 (Rust shell)
 - **单文件安装**：PyInstaller 打包 sidecar，NSIS 生成 Windows 安装包，内嵌中文字体（Noto Sans CJK），装机即用
 - **断网可用**：全部计算在本地完成，不依赖任何外部服务
 
-## 更细的安装与目录说明见 [INSTALL.md](INSTALL.md)，面向业务同事的操作步骤见 [USER_GUIDE.md](USER_GUIDE.md)，交付状态见 [DELIVERY.md](DELIVERY.md)。
+## 更详细的安装与目录说明见 [INSTALL.md](INSTALL.md)，面向业务同事的操作步骤见 [USER_GUIDE.md](USER_GUIDE.md)。
 
 ## 目录结构
 
