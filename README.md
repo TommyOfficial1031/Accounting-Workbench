@@ -144,37 +144,8 @@ Tauri 2 (Rust shell)
 
 - **单文件安装**：PyInstaller 打包 sidecar，NSIS 生成 Windows 安装包，内嵌中文字体（Noto Sans CJK），装机即用
 - **断网可用**：全部计算在本地完成，不依赖任何外部服务
-- **派生指标表达式**：支持嵌套括号与四则优先级，分母为 0 时留空而不是报错
 
-## 工程质量
-
-- 后端 **pytest 163 例**、前端 **vitest 97 例**，全部通过
-- `backend/scripts/check_caliber.py`：口径守门脚本，改动计算逻辑后先跑它
-- `backend/scripts/e2e_real_data.py`：真实数据全链路冒烟
-- TypeScript 严格模式（`tsc --noEmit` 通过）
-
-## 本地开发
-
-```bash
-# 前端
-npm install
-npm run dev            # Vite 开发服务器
-npm run typecheck      # 类型检查
-npm test               # 前端测试（vitest）
-
-# 后端
-cd backend
-pip install -r requirements.txt
-python -m accounting_backend.main     # FastAPI sidecar
-
-# 桌面壳
-npm run tauri dev
-
-# 打包（Windows）
-powershell -File scripts/build-windows.ps1
-```
-
-更细的安装与目录说明见 [INSTALL.md](INSTALL.md)，面向业务同事的操作步骤见 [USER_GUIDE.md](USER_GUIDE.md)，交付状态见 [DELIVERY.md](DELIVERY.md)。
+## 更细的安装与目录说明见 [INSTALL.md](INSTALL.md)，面向业务同事的操作步骤见 [USER_GUIDE.md](USER_GUIDE.md)，交付状态见 [DELIVERY.md](DELIVERY.md)。
 
 ## 目录结构
 
@@ -182,12 +153,12 @@ powershell -File scripts/build-windows.ps1
 src/          React 前端（页面、组件、状态、图表）
 src-tauri/    Tauri 外壳（Rust 命令、打包配置、图标）
 backend/      FastAPI sidecar（api / compute / chart / io / data）
-assets/       图标、字体、界面截图
+assets/       图标、字体等
 scripts/      开发与打包脚本
 installer/    NSIS 安装脚本
 ```
 
 ## 说明
 
-- 仓库**不含任何企业业务数据**；截图中的数值区域已脱敏。
 - 代码用于个人作品展示与学习交流。
+- 未经软件版权所有人同意，自行修改代码或改变用途等行为造成的后果由其本人承担。
